@@ -1,6 +1,6 @@
 ==========================
 
-Ali Al-Bayaty personal website!
+# Ali Al-Bayaty personal website!
 
 http://albayaty.github.io
 
