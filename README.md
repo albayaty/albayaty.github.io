@@ -1,4 +1,4 @@
-# Ali Al-Bayaty personal website!
+# Welcome to my personal website!
 
 http://albayaty.github.io
 
