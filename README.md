@@ -1,4 +1,4 @@
-# Welcome to my GitHub website!
+# Welcome to my GitHub Page!
 
 http://albayaty.github.io
 
