@@ -1,8 +1,8 @@
-# Welcome to my personal website!
+# Welcome to my GitHub website!
 
 http://albayaty.github.io
 
-You will be redirected to my official personal website https://albayatysite.wordpress.com/
+You will be redirected to my official personal website https://albayaty.me
 
 
 ==========================
