@@ -2,7 +2,7 @@
 
 http://albayaty.github.io
 
-You will be redirected to my official personal website https://albayaty.me
+You will be redirected to my personal portfolio https://albayaty.me
 
 
 ==========================
