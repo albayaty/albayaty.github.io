@@ -1,6 +1,6 @@
 # REQUIRED CHANGES
 # Edit next line to provide your own name.
-title: Ali AlBayaty | Professional Portfolio
+title: Ali Al-Bayaty | Professional Portfolio
 # Edit next line, replacing 'techfolios' with your github username
 url: "https://albayaty.github.io"
 # Edit next line so that baseurl is "" if your repo is <username>.github.io
@@ -22,7 +22,7 @@ strict_front_matter: true
 mathjax: true
 exclude:
   - Gemfile
-  #- Gemfile.lock
+  - Gemfile.lock
   - LICENSE
   - README.md
 include:
