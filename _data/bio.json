@@ -1,13 +1,13 @@
 {
   "basics": {
-    "name": "Molly Maluhia",
-    "label": "Student",
-    "picture": "https://github.com/kambergjohnson.png",
-    "email": "molly@hawaii.edu",
-    "phone": "808-333-4444",
-    "website": "https://mmaluhia.github.io",
-    "summary": "I am studying for a B.S. in Computer Science in the Department of Information and Computer Sciences at the University of Hawaii. I expect to graduate in Spring, 2024.",
-    "location": { "address": "", "postalCode": "96822", "city": "Honolulu", "countryCode": "USA", "region": "Hawaii" },
+    "name": "Ali Al-Bayaty",
+    "label": "Ph.D. in Electrical and Computer Engineering",
+    "picture": "https://github.com/albayaty.png",
+    "email": "albayaty@pdx.edu",
+    "phone": "+1 XXX-YYY-ZZZZ",
+    "website": "https://albayaty.github.io",
+    "summary": "Passionate about teaching, developing innovative experiments, and conducting academic research on quantum gates, circuits, and algorithms, by bridging theoretical foundations in academia with practical applications in industry. Strive to bring expertise and leadership to your institution by contributing to its research initiatives and advancing the next generation of quantum computing technologies. My research focuses on geometrically building cost-effective quantum operators, enhancing the search circuitry of Grover’s algorithm and the quantum approximate optimization algorithm (QAOA), and developing generic quantum libraries for lower quantum costs and efficient physical qubits routing (mapping) for different layouts (architectures) of real quantum computers.",
+    "location": { "address": "", "postalCode": "97201", "city": "Portland", "countryCode": "USA", "region": "Oregon" },
     "profiles": [
       { "network": "github", "username": "mmaluhia", "url": "http://github.com/changeme" },
       { "network": "linkedin", "username": "mollymaluhia", "url": "http://linkedin.com/in/changeme" },
