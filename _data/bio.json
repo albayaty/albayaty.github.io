@@ -21,7 +21,7 @@
   
   "interests": [
     { "name": "Quantum computing" },
-    { "name": "multi-valued Boolean logic" },
+    { "name": "multi-valued (Boolean) logic" },
     { "name": "machine learning" },
     { "name": "computer vision" },
     { "name": "robotics" }
