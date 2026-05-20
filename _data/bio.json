@@ -15,7 +15,7 @@
       { "network": "globe", "username": "ORCID", "url": "https://orcid.org/0000-0003-2719-0759" },
 	  { "network": "globe", "username": "arXiv", "url": "https://arxiv.org/a/albayaty_a_1.html" },
 	  { "network": "globe", "username": "Merit", "url": "https://meritpages.com/Ali.Al-Bayaty" },
-	  { "network": "amazon", "username": "Amazon", "url": "https://www.amazon.com/Ali-Al-Bayaty/e/B074NXJXL6" }
+	  { "network": "globe", "username": "Amazon", "url": "https://www.amazon.com/Ali-Al-Bayaty/e/B074NXJXL6" }
     ]
   },
   
