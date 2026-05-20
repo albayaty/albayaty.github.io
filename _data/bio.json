@@ -4,45 +4,86 @@
     "label": "Ph.D. in Electrical and Computer Engineering",
     "picture": "https://github.com/albayaty.png",
     "email": "albayaty@pdx.edu",
-    "phone": "+1 XXX-YYY-ZZZZ",
+    "phone": "",
     "website": "https://albayaty.github.io",
-    "summary": "Passionate about teaching, developing innovative experiments, and conducting academic research on quantum gates, circuits, and algorithms, by bridging theoretical foundations in academia with practical applications in industry. Strive to bring expertise and leadership to your institution by contributing to its research initiatives and advancing the next generation of quantum computing technologies. My research focuses on geometrically building cost-effective quantum operators, enhancing the search circuitry of Grover’s algorithm and the quantum approximate optimization algorithm (QAOA), and developing generic quantum libraries for lower quantum costs and efficient physical qubits routing (mapping) for different layouts (architectures) of real quantum computers.",
+    "summary": "Passionate about teaching students, developing innovative curricula, and conducting academic research on quantum gates, circuits, and algorithms, by bridging theoretical foundations in academia with practical applications in industry. My research focuses on geometrically constructing cost-effective quantum operators, enhancing the searching circuitry of Grover’s algorithm and the quantum approximate optimization algorithm (QAOA), and developing generic quantum libraries for lower quantum costs and efficient physical qubits routing (mapping) for the layouts (architectures) of real quantum computers.",
     "location": { "address": "", "postalCode": "97201", "city": "Portland", "countryCode": "USA", "region": "Oregon" },
     "profiles": [
-      { "network": "github", "username": "mmaluhia", "url": "http://github.com/changeme" },
-      { "network": "linkedin", "username": "mollymaluhia", "url": "http://linkedin.com/in/changeme" },
-      { "network": "twitter", "username": "mollymal", "url": "http://twitter.com/changeme" },
-      { "network": "instagram", "username": "molly", "url": "http://instagram.com/changeme" }
+      { "network": "github", "username": "GitHub", "url": "https://github.com/albayaty" },
+      { "network": "linkedin", "username": "LinkedIn", "url": "https://www.linkedin.com/in/AliAlBayaty" },
+      { "network": "google", "username": "Scholar", "url": "https://scholar.google.com/citations?user=CGwPcPkAAAAJ&hl=en" },
+      { "network": "orcid", "username": "ORCID", "url": "https://orcid.org/0000-0003-2719-0759" },
+      { "network": "arxiv", "username": "arXiv", "url": "https://arxiv.org/a/albayaty_a_1.html" },
+      { "network": "merit", "username": "Merit", "url": "https://meritpages.com/Ali.Al-Bayaty" },
+      { "network": "amazon", "username": "Amazon", "url": "https://www.amazon.com/Ali-Al-Bayaty/e/B074NXJXL6" }
     ]
   },
+  
   "interests": [
-    { "name": "Interactive media" },
-    { "name": "Neuromorphic Computing" },
     { "name": "Quantum Computing" },
-    { "name": "Robotics" },
-    { "name": "3D Graphics" }
+    { "name": "Multi-valued Boolean Logic" },
+    { "name": "Machine Learning" },
+    { "name": "Computer Vision" },
+    { "name": "Robotics" }
   ],
-  "skills": [
-    {
-      "name": "Languages and Frameworks",
-      "keywords": [ "C", "C++", "Java", "Javascript", "Assembly", "Common Lisp" ]
-    },
-    {
-      "name": "Toolsets/OS",
-      "keywords": [ "MacOS", "Ubuntu", "Git/GitHub", "g++", "TI LaunchPad" ]
-    }
-  ],
+  
   "education": [
     {
-      "institution": "University of Hawaii, Honolulu, HI",
-      "area": "Computer Science (expected Spring, 2018)",
-      "studyType": "B.S.",
-      "startDate": "2013-09-01",
-      "endDate": "Present",
+      "institution": "Portland State University, Oregon, USA",
+      "area": "Electrical and Computer Engineering",
+      "studyType": "Ph.D.",
+      "startDate": "2019",
+      "endDate": "2025",
+      "courses": [
+      ]
+    },
+	{
+      "institution": "Portland State University, Oregon, USA",
+      "area": "Computational Intelligence",
+      "studyType": "Graduate Certificate",
+      "startDate": "2019",
+      "endDate": "2021",
+      "courses": [
+      ]
+    },
+	{
+      "institution": "University of New Haven, Connecticut, USA",
+      "area": "Electrical Engineering",
+      "studyType": "M.S.",
+      "startDate": "2011",
+      "endDate": "2014",
+      "courses": [
+      ]
+    },
+	{
+      "institution": "University of New Haven, Connecticut, USA",
+      "area": "Computer Programming",
+      "studyType": "Graduate Certificate",
+      "startDate": "2011",
+      "endDate": "2012",
+      "courses": [
+      ]
+    },
+	{
+      "institution": "Al-Nahrain University, Baghdad, Iraq",
+      "area": "Computer Engineering",
+      "studyType": "M.Sc.",
+      "startDate": "2006",
+      "endDate": "2002",
+      "courses": [
+      ]
+    },
+	{
+      "institution": "Al-Nahrain University, Baghdad, Iraq",
+      "area": "Computer Engineering",
+      "studyType": "B.Sc.",
+      "startDate": "2002",
+      "endDate": "1999",
       "courses": [
       ]
     }
   ],
+  
   "work": [
     {
       "company": "UH Manoa Board of Publications",
@@ -55,20 +96,66 @@
         "Maintain, update, and oversee official college newspaper website",
         "Drive, design and build student-community projects for UH Manoa"
       ]
-    },
-    {
-      "company": "UH Information Technology Services",
-      "position": "Help Desk Consultant",
-      "website": "http://www.hawaii.edu/its/",
-      "startDate": "2015-01-01",
-      "endDate": "2016-03-15",
-      "summary": "",
-      "highlights": [
-        "Troubleshoot software, hardware and networking issues over the phone",
-        "Answer phone and email responses to the ITS Help Desk"
-      ]
     }
   ],
+
+  "awards": [
+    {
+      "title": "Quantum Excellence Badge",
+      "date": "2025",
+      "awarder": "IBM Qiskit Global Summer School",
+      "summary": ""
+    },
+	{
+      "title": "Dr. Robert D. Dryden Memorial Endowed Scholarship",
+      "date": "2024",
+      "awarder": "Portland State University",
+      "summary": ""
+    },
+	{
+      "title": "El-Mansy Family Fellowship",
+      "date": "2023",
+      "awarder": "Portland State University",
+      "summary": ""
+    },
+	{
+      "title": "Quantum Advanced Badge",
+      "date": "2020",
+      "awarder": "IBM Quantum Challenge",
+      "summary": ""
+    },
+	{
+      "title": "Fulbright International Exchange Alumni Association",
+      "date": "2014",
+      "awarder": "U.S. Fulbright Program",
+      "summary": ""
+    },
+	{
+      "title": "IEEE-HKN (Eta Kappa Nu) Honor Society Membership",
+      "date": "2012",
+      "awarder": "IEEE Organization",
+      "summary": ""
+    },
+	{
+      "title": "Fulbright Foreign Students Scholarship",
+      "date": "2010",
+      "awarder": "U.S. Fulbright Program",
+      "summary": ""
+    }
+  ],
+
+  "publications": [
+    {
+      "name": "Publication",
+	  "type": "conference/journal",
+	  "author": "List-of-authors",
+      "publisher": "Company",
+      "releaseDate": "2014-10-01",
+      "url": "https://publication.com",
+      "summary": "Description…"
+    }
+  ],
+  
   "volunteer": [
     {
       "organization": "Center for Renewable Energy and Island Sustainability",
@@ -81,35 +168,9 @@
         "Design firmware for distributed weather sensor network",
         "Maintain custom data collection and storage infrastructure"
       ]
-    },
-    {
-      "organization": "",
-      "website": "",
-      "position": "Professional organization involvement",
-      "startDate": "",
-      "endDate": "",
-      "summary": "",
-      "highlights": [
-        "Chair, ACM Manoa, 2016-Present",
-        "Member, IEEE Student Branch, 2014-Present",
-        "Webmaster/IT Officer, IEEE Student Branch, UH Manoa, 2012-2013"
-      ]
     }
   ],
-  "awards": [
-    {
-      "title": "B+ Scholarship",
-      "date": "2013-Present",
-      "awarder": "State of Hawaii",
-      "summary": "Scholarships awarded to incoming freshmen and continuing students who complete a rigorous high school curriculum with a minimum overall GPA of 3.0 at a Hawai'i public school."
-    },
-    {
-      "title": "First place",
-      "date": "2015",
-      "awarder": "University of Hawaii Micromouse Competition",
-      "summary": "My team won first place in 2015.  See my portfolio site for more details."
-    }
-  ],
+  
   "references": [
     {
       "name": "Available upon request"
