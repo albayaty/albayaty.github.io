@@ -20,11 +20,11 @@
   },
   
   "interests": [
-    { "name": "Quantum Computing" },
-    { "name": "Multi-valued Boolean Logic" },
-    { "name": "Machine Learning" },
-    { "name": "Computer Vision" },
-    { "name": "Robotics" }
+    { "name": "Quantum computing" },
+    { "name": "multi-valued Boolean logic" },
+    { "name": "machine learning" },
+    { "name": "computer vision" },
+    { "name": "robotics" }
   ],
   
   "education": [
