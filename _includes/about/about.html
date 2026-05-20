@@ -6,11 +6,11 @@
       </div>
       <div class="col-lg-8">
         <h1 class="display-4 text-center">{{ site.data.bio.basics.name }}</h1>
-        <p class="lead text-center">{{ site.data.bio.basics.label }}</p>
+        <b><p class="lead text-center">{{ site.data.bio.basics.label }} </p></b>
         <p class="lead">{{ site.data.bio.basics.summary }}</p>
         <hr class="my-4">
         <p class="lead m-0">
-          Interests:
+          <strong>Interests:</strong>
           {% for interest in site.data.bio.interests %}
           {{ interest.name }}{% if forloop.last != true %}, {% endif %}
           {% endfor %}
