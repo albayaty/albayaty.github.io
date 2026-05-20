@@ -12,9 +12,9 @@
       { "network": "github", "username": "GitHub", "url": "https://github.com/albayaty" },
       { "network": "linkedin", "username": "LinkedIn", "url": "https://www.linkedin.com/in/AliAlBayaty" },
       { "network": "google", "username": "Scholar", "url": "https://scholar.google.com/citations?user=CGwPcPkAAAAJ&hl=en" },
-      { "network": "orcid", "username": "ORCID", "url": "https://orcid.org/0000-0003-2719-0759" },
-      { "network": "arxiv", "username": "arXiv", "url": "https://arxiv.org/a/albayaty_a_1.html" },
-      { "network": "merit", "username": "Merit", "url": "https://meritpages.com/Ali.Al-Bayaty" },
+      { "network": "url", "username": "ORCID", "url": "https://orcid.org/0000-0003-2719-0759" },
+      { "network": "link", "username": "arXiv", "url": "https://arxiv.org/a/albayaty_a_1.html" },
+      { "network": "website", "username": "Merit", "url": "https://meritpages.com/Ali.Al-Bayaty" },
       { "network": "home", "username": "Amazon", "url": "https://www.amazon.com/Ali-Al-Bayaty/e/B074NXJXL6" }
     ]
   },
