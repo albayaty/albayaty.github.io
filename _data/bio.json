@@ -7,15 +7,15 @@
     "phone": "",
     "website": "https://albayaty.github.io",
     "summary": "Passionate about teaching students, developing innovative curricula, and conducting academic research on quantum gates, circuits, and algorithms, by bridging theoretical foundations in academia with practical applications in industry. My research focuses on geometrically constructing cost-effective quantum operators, enhancing the searching circuitry of Grover’s algorithm and the quantum approximate optimization algorithm (QAOA), and developing generic quantum libraries for lower quantum costs and efficient physical qubits routing (mapping) for the layouts (architectures) of real quantum computers.",
-    "location": { "address": "", "postalCode": "97201", "city": "Portland", "countryCode": "USA", "region": "Oregon" },
+    "location": { "address": "", "postalCode": "97201", "city": "Portland", "countryCode": "USA", "region": "OR" },
     "profiles": [
       { "network": "github", "username": "GitHub", "url": "https://github.com/albayaty" },
       { "network": "linkedin", "username": "LinkedIn", "url": "https://www.linkedin.com/in/AliAlBayaty" },
       { "network": "google", "username": "Scholar", "url": "https://scholar.google.com/citations?user=CGwPcPkAAAAJ&hl=en" },
       { "network": "link", "username": "ORCID", "url": "https://orcid.org/0000-0003-2719-0759" },
-      { "network": "link", "username": "arXiv", "url": "https://arxiv.org/a/albayaty_a_1.html" },
-      { "network": "link", "username": "Merit", "url": "https://meritpages.com/Ali.Al-Bayaty" },
-      { "network": "link", "username": "Amazon", "url": "https://www.amazon.com/Ali-Al-Bayaty/e/B074NXJXL6" }
+	  { "network": "link", "username": "arXiv", "url": "https://arxiv.org/a/albayaty_a_1.html" },
+	  { "network": "link", "username": "Merit", "url": "https://meritpages.com/Ali.Al-Bayaty" },
+	  { "network": "link", "username": "Amazon", "url": "https://www.amazon.com/Ali-Al-Bayaty/e/B074NXJXL6" }
     ]
   },
   
@@ -84,21 +84,6 @@
     }
   ],
   
-  "work": [
-    {
-      "company": "UH Manoa Board of Publications",
-      "position": "Web Developer",
-      "website": "",
-      "startDate": "2015-08-01",
-      "endDate": "Present",
-      "summary": "Head of online presence for Ka Leo",
-      "highlights": [
-        "Maintain, update, and oversee official college newspaper website",
-        "Drive, design and build student-community projects for UH Manoa"
-      ]
-    }
-  ],
-
   "awards": [
     {
       "title": "Quantum Excellence Badge",
@@ -143,30 +128,46 @@
       "summary": ""
     }
   ],
-
-  "publications": [
+	
+  "work": [
     {
-      "name": "Publication",
-	  "type": "conference/journal",
-	  "author": "List-of-authors",
-      "publisher": "Company",
-      "releaseDate": "2014-10-01",
-      "url": "https://publication.com",
-      "summary": "Description…"
-    }
-  ],
-  
-  "volunteer": [
-    {
-      "organization": "Center for Renewable Energy and Island Sustainability",
-      "website": "http://manoa.hawaii.edu/reis",
-      "position": "Software Developer",
-      "startDate": "2016-01-01",
-      "endDate": "Present",
-      "summary": "Lead developer for weather sensing project",
+      "company": "IRIS (Integrated Refugee & Immigrant Services) Organization",
+      "position": "IT Coordinator",
+      "website": "",
+      "startDate": "2015-10-01",
+      "endDate": "2019-06-01",
+      "summary": "",
       "highlights": [
-        "Design firmware for distributed weather sensor network",
-        "Maintain custom data collection and storage infrastructure"
+      ]
+    },
+	{
+      "company": "Dynamic Measurement Consultants (DMC), LLC",
+      "position": "Accelerometer Board Developer (Summer Internship)",
+      "website": "",
+      "startDate": "2012-07-01",
+      "endDate": "2012-09-01",
+      "summary": "",
+      "highlights": [
+      ]
+    },
+	{
+      "company": "Alcatel-Lucent",
+      "position": "Telecom Engineer",
+      "website": "",
+      "startDate": "2006-12-01",
+      "endDate": "2007-05-01",
+      "summary": "",
+      "highlights": [
+      ]
+    },
+	{
+      "company": "ZTE Corporation",
+      "position": "Telecom Engineer",
+      "website": "",
+      "startDate": "2005-02-01",
+      "endDate": "2010-09-01",
+      "summary": "",
+      "highlights": [
       ]
     }
   ],
