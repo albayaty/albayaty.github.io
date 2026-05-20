@@ -1,3 +1,3 @@
-# Professional Portfolio
+# Ali Al-Bayaty | Professional Portfolio
 
-For details on this professional portfolio, please see https://techfolios.github.io.
+Visit this professional portfolio at https://albayaty.github.io.
