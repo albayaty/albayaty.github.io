@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="author" content="Ali Al-Bayaty">
+    <meta name="DC.creator" content="Ali Al-Bayaty">
+    <meta name="DC.date" content="2026-05-15">
+    <meta name="description" content="3-Input Ternary Qutrits Quantum Circuit Simulator">
+    <meta name="keywords" content="quantum, ternary, qutrit, circuit, simulator">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="https://albayaty.github.io/favicon.ico">
+    <title>Ternary QC Simulator</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --panel-bg: #1e293b;
+            --border-color: #334155;
+            --text-color: #f8fafc;
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
+            --gate-1q: #0284c7;
+            --gate-2q: #7c3aed;
+            --control-color: #ef4444;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+        header {
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        h1 { margin: 0; font-size: 1.8rem; color: #60a5fa; }
+        h2 { font-size: 1.2rem; margin-top: 0; color: #ffffff; border-bottom: 1px solid var(--border-color); padding-bottom: 5px;}
+	   h4 { font-size: 0.9rem; margin-top: 0; color: #94a3b8; border-bottom: 1px solid var(--border-color); padding-bottom: 5px;}
+        .layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 20px;
+        }
+        .left-col {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .panel {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .gate-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .gate-item {
+            background-color: var(--gate-1q);
+            color: white;
+            text-align: center;
+            padding: 8px 4px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            border-radius: 4px;
+            cursor: grab;
+            user-select: none;
+            transition: transform 0.1s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .gate-item.two-q {
+            background-color: var(--gate-2q);
+        }
+        .gate-item:active { cursor: grabbing; transform: scale(0.95); }
+        .global-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover { background-color: var(--accent-hover); }
+        button.secondary { background-color: #475569; }
+        button.secondary:hover { background-color: #6b7280; }
+        button.danger { background-color: #dc2626; }
+        button.danger:hover { background-color: #b91c1c; }
+        input[type="number"] {
+            background-color: #0f172a;
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 8px;
+            border-radius: 6px;
+            width: 80px;
+        }
+        /* CRITICAL FIX: Forces the right grid items to respect container boundaries instead of expanding infinitely */
+        .right-col {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            min-width: 0; 
+        }
+        /* Specifically isolate the circuit panel to scroll horizontally */
+        .circuit-panel {
+		 width: 100%;
+            overflow-x: auto;
+            white-space: nowrap;
+            box-sizing: border-box;
+        }
+        .circuit-container {
+		 width: 100%;
+            overflow-x: auto;
+            padding-bottom: 15px;
+            margin-top: 15px;
+        }
+        .circuit-grid {
+            display: grid;
+            grid-template-columns: 80px repeat(var(--steps, 5), 70px);
+            gap: 10px;
+            position: relative;
+            align-items: center;
+        }
+        .qutrit-label {
+            font-weight: bold;
+            color: #cbd5e1;
+            text-align: right;
+            padding-right: 15px;
+        }
+        .circuit-cell {
+            height: 60px;
+            width: 70px;
+            background-color: #0f172a;
+            border: 2px dashed #334155;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+            box-sizing: border-box;
+        }
+        .circuit-cell.dragover {
+            border-color: #60a5fa;
+            background-color: #1e293b;
+        }        
+        .circuit-row-wire {
+            position: absolute;
+            left: 80px;
+            right: 0;
+            height: 2px;
+            background-color: #475569;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .placed-gate {
+            width: 85%;
+            height: 85%;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            position: relative;
+            z-index: 1;
+            font-size: 0.85rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .placed-gate.one-q { background-color: var(--gate-1q); }
+        .placed-gate.two-q { background-color: var(--gate-2q); }
+        .placed-gate.control-node { background-color: var(--control-color); font-size: 1.1rem; }
+        .delete-btn {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            font-size: 10px;
+            line-height: 14px;
+            text-align: center;
+            cursor: pointer;
+            display: none;
+            z-index: 2;
+        }
+        .circuit-cell:hover .delete-btn { display: block; }
+        .output-flex {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .statevector-container {
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: arial;
+            font-size: 16px;
+            background-color: #0f172a;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+        .state-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px solid #1e293b;
+        }
+        .state-row:hover { background-color: #1e293b; }        
+        canvas {
+            background-color: #ffffff;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            width: 100%;
+            height: 300px;
+        }
+        .io-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <header style="display: flex;">
+        <span>
+		<a href="https://albayaty.github.io" title="Ali Al-Bayaty | Professional Portfolio">
+		<i class="bi bi-house-fill" style="font-size: 2rem; color: white;">
+			<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-house-fill" viewBox="0 0 16 16">
+				<path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L8 2.207l6.646 6.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293z"/>
+				<path d="m8 3.293 6 6V13.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5V9.293z"/>
+			</svg>
+		</i>
+		</a>
+        </span>
+        <span style="display: flex; margin:auto; display:table;">
+		<h1>3-Input Ternary (Qutrits) QC Simulator</h1>
+        </span>
+    </header>
+
+    <!-- <div class="global-controls">
+        <button id="runBtn" onclick="runSimulation()">▶ Run Circuit</button>
+        <button id="clearBtn" class="danger" onclick="clearCircuit()">⏻ Reset All</button>
+        <button class="secondary" onclick="exportJSON()">Export JSON</button>
+        <button class="secondary" onclick="document.getElementById('importFile').click()">Import JSON</button>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+        <div style="display: flex; align-items: center; gap: 8px; margin-left: 20px;">
+            <label for="shotsInput">Shots =</label>
+            <input type="number" id="shotsInput" value="1024" min="1" max="100000">
+        </div>
+    </div> -->
+
+    <div class="layout">
+        <!-- Left Column (Stays Static) -->
+        <div class="left-col">
+            <div class="panel">
+                <h2>Ternary Gates</h2>
+                <h3 style="font-size: 0.9rem; color: #38bdf8; margin: 5px 0;">One-Qutrit Gates</h3>
+                <div class="gate-grid" id="oneQutritGates">
+                    <div class="gate-item" draggable="true" data-type="CH" title="Chrestenson gate">C<sub>3</sub></div>
+                    <div class="gate-item" draggable="true" data-type="CH_dag" title="Inverse Chrestenson gate">C<sub>3</sub><sup>&dagger;</sup></div>
+                    <div class="gate-item" draggable="true" data-type="Z" title="Phase gate">Z<sub>3</sub></div>
+                    <div class="gate-item" draggable="true" data-type="Z_dag" title="Inverse phase gate">Z<sub>3</sub><sup>&dagger;</sup></div>
+                    <div class="gate-item" draggable="true" data-type="X01" title="Permutative gate">01</div>
+                    <div class="gate-item" draggable="true" data-type="X02" title="Permutative gate">02</div>
+                    <div class="gate-item" draggable="true" data-type="X12" title="Permutative gate">12</div>
+                    <div class="gate-item" draggable="true" data-type="P1" title="Shift gate">+1</div>
+                    <div class="gate-item" draggable="true" data-type="P2" title="Shift gate">+2</div>
+                    <div class="gate-item" draggable="true" data-type="RESET" title="Reset gate">|0⟩<sub>3</sub></div>
+                </div>
+
+                <h3 style="font-size: 0.9rem; color: #a78bfa; margin: 15px 0 5px 0;"><br>Two-Qutrit Gates</h3>
+                <p style="font-size: 0.75rem; margin: 0 0 8px 0; color: #94a3b8;">Drop a gate onto Target cell, then click a cell of same time-step to set Control of |2⟩.</p>
+                <div class="gate-grid" id="twoQutritGates">
+                    <div class="gate-item two-q" draggable="true" data-type="CCH" title="Controlled-Chrestenson gate">CC<sub>3</sub></div>
+                    <div class="gate-item two-q" draggable="true" data-type="CCH_dag" title="Controlled-inverse Chrestenson gate">CC<sub>3</sub><sup>&dagger;</sup></div>
+                    <div class="gate-item two-q" draggable="true" data-type="CZ" title="Controlled-phase gate">CZ<sub>3</sub></div>
+                    <div class="gate-item two-q" draggable="true" data-type="CZ_dag" title="Controlled-inverse phase gate">CZ<sub>3</sub><sup>&dagger;</sup></div>
+                    <div class="gate-item two-q" draggable="true" data-type="C01" title="Controlled-permutative gate">C01</div>
+                    <div class="gate-item two-q" draggable="true" data-type="C02" title="Controlled-permutative gate">C02</div>
+                    <div class="gate-item two-q" draggable="true" data-type="C12" title="Controlled-permutative gate">C12</div>
+                    <div class="gate-item two-q" draggable="true" data-type="CP1" title="Controlled-shift gate">C+1</div>
+                    <div class="gate-item two-q" draggable="true" data-type="CP2" title="Controlled-shift gate">C+2</div>
+                </div>
+            </div>
+
+            <div class="panel">
+			<hr>
+                 <p style="font-size: 1.0rem; margin: 0 0 8px 0; color: #94a3b8;">&copy; <script>document.write(new Date().getFullYear())</script> Ali Al-Bayaty • All Rights Reserved</p>
+			<hr>
+            </div>
+        </div>
+
+        <!-- Right Column (Fixed Layout Container) -->
+        <div class="right-col">
+            <!-- Wrapped layout directly with unified scroll handling class -->
+            <div class="panel circuit-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h2>Quantum Circuit</h2>
+                </div>
+
+                <div class="global-controls">
+                    <button id="runBtn" onclick="runSimulation()">▶ Run Circuit</button>
+                    <button id="clearBtn" class="danger" onclick="clearCircuit()">⏻ Reset All</button>    <!-- 🗑 ↻ ↺ ⟳ ⟲ ⏻ -->
+                    <button class="secondary" onclick="addTimeStep()">+ Time-Step</button>
+                    <button class="secondary" onclick="exportJSON()">Export JSON</button>
+                    <button class="secondary" onclick="document.getElementById('importFile').click()">Import JSON</button>
+                    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+                </div>
+
+                <div class="circuit-container">
+                    <div class="circuit-grid" id="circuitGrid"></div>
+                </div>
+            </div>
+
+            <div class="output-flex">
+                <div class="panel">
+                    <h2>Statevector (𝜓)</h2>
+                    <p style="font-size: 0.85rem; color: #94a3b8; margin: -5px 0 10px 0;">Notation |MSQ ... LSQ⟩ → |q₂ q₁ q₀⟩</p>
+                    <div class="statevector-container" id="statevectorOutput">
+                        Statevector appears here after 'Run Circuit'.
+                    </div>
+                </div>
+                <div class="panel">
+                    <h2>Measurement</h2>
+                    <div style="font-size: 0.85rem; color: #94a3b8; display: flex; justify-content:space-between; align-items: center; margin: -13px 0 5px 0;">
+                        <span>Notation (top-to-bottom) → q₂ q₁ q₀</span>
+                        <span>
+					<label for="shotsInput">Shots =</label>
+					<input type="number" id="shotsInput" value="1024" min="1" max="100000">
+                        </span>
+                    </div>
+                    <canvas id="histogramCanvas" width="500" height="280"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class Complex {
+            constructor(r, i = 0) { this.r = r; this.i = i; }
+            add(o) { return new Complex(this.r + o.r, this.i + o.i); }
+            sub(o) { return new Complex(this.r - o.r, this.i - o.i); }
+            mul(o) { return new Complex(this.r * o.r - this.i * o.i, this.r * o.i + this.i * o.r); }
+            conj() { return new Complex(this.r, -this.i); }
+            magSq() { return this.r * this.r + this.i * this.i; }
+            toString() {
+                if (Math.abs(this.r) < 1e-9 && Math.abs(this.i) < 1e-9) return "0";
+                let rStr = Math.abs(this.r) > 1e-9 ? this.r.toFixed(4) : "";
+                let iStr = Math.abs(this.i) > 1e-9 ? (this.i > 0 && rStr ? "+" : "") + this.i.toFixed(4) + "i" : "";
+                return rStr + iStr;
+            }
+        }
+
+        //const O = new Complex(0,0), I = new Complex(1,0);
+        const O = new Complex(0,0);
+        const I = new Complex(1,0);
+        const w = new Complex(-0.5, Math.sqrt(3)/2); 
+        const w2 = w.mul(w); 
+        const r3 = 1 / Math.sqrt(3);
+        const inv3 = new Complex(r3, 0);
+
+        let totalSteps = 5;
+        const totalQutrits = 3;
+        let gridData = []; 
+        let activeDragType = null;
+
+        const GATES_1Q = {
+            RESET: null, 
+            X01: [ [O, I, O], [I, O, O], [O, O, I] ],
+            X02: [ [O, O, I], [O, I, O], [I, O, O] ],
+            X12: [ [I, O, O], [O, O, I], [O, I, O] ],
+            P1:  [ [O, O, I], [I, O, O], [O, I, O] ], 
+            P2:  [ [O, I, O], [O, O, I], [I, O, O] ], 
+            Z:   [ [I, O, O], [O, w, O], [O, O, w2] ],
+            Z_dag:[[I, O, O], [O, w2, O],[O, O, w] ],
+            CH:  [
+                [inv3, inv3, inv3],
+                [inv3, inv3.mul(w), inv3.mul(w2)],
+                [inv3, inv3.mul(w2), inv3.mul(w)]
+            ],
+            CH_dag: [
+                [inv3, inv3, inv3],
+                [inv3, inv3.mul(w2), inv3.mul(w)],
+                [inv3, inv3.mul(w), inv3.mul(w2)]
+            ]
+        };
+
+        const CONTROL_MAP = {
+            'CCH': 'CH',
+            'CCH_dag': 'CH_dag',
+            'CZ': 'Z',
+            'CZ_dag': 'Z_dag',
+            'C01': 'X01',
+            'C02': 'X02',
+            'C12': 'X12',
+            'CP1': 'P1',
+            'CP2': 'P2'
+        };
+
+        function initGridData() {
+            gridData = [];
+            for (let q = 0; q < totalQutrits; q++) {
+                gridData[q] = [];
+                for (let s = 0; s < totalSteps; s++) {
+                    gridData[q][s] = null;
+                }
+            }
+        }
+
+        function renderCircuitGrid() {
+            const grid = document.getElementById('circuitGrid');
+            grid.style.setProperty('--steps', totalSteps);
+            grid.innerHTML = '';
+
+            for (let q = 0; q < totalQutrits; q++) {
+                const wire = document.createElement('div');
+                wire.className = 'circuit-row-wire';
+                wire.style.top = `${q * 70 + 30}px`;
+                grid.appendChild(wire);
+            }
+
+            for (let q = 0; q < totalQutrits; q++) {
+                const label = document.createElement('div');
+                label.className = 'qutrit-label';
+                label.style.gridRow = q + 1;
+                label.style.gridColumn = 1;
+                label.innerHTML = `q<sub>${q}</sub>: |0⟩<sub>3</sub>`;
+                grid.appendChild(label);
+
+                for (let s = 0; s < totalSteps; s++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'circuit-cell';
+                    cell.style.gridRow = q + 1;
+                    cell.style.gridColumn = s + 2;
+                    cell.dataset.qutrit = q;
+                    cell.dataset.step = s;
+
+                    cell.addEventListener('dragover', (e) => { e.preventDefault(); cell.classList.add('dragover'); });
+                    cell.addEventListener('dragleave', () => cell.classList.remove('dragover'));
+                    cell.addEventListener('drop', (e) => handleDrop(e, q, s));
+                    cell.addEventListener('click', () => handleCellClick(q, s));
+
+                    const cellGate = gridData[q][s];
+                    if (cellGate) {
+                        const gateEl = document.createElement('div');
+                        const is2Q = cellGate.type.startsWith('C') || cellGate.type.startsWith('CZ') || cellGate.type === 'CP1' || cellGate.type === 'CP2';
+                        
+                        gateEl.className = `placed-gate ${is2Q ? 'two-q' : 'one-q'}`;
+                        if (cellGate.type === 'CTRL') {
+                            gateEl.className = 'placed-gate control-node';
+                            gateEl.innerText = '②';
+                        } else {
+                            gateEl.innerText = cleanGateName(cellGate.type);
+                        }
+
+                        const delBtn = document.createElement('div');
+                        delBtn.className = 'delete-btn';
+                        delBtn.innerText = '×';
+                        delBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            removeGate(q, s);
+                        };
+                        
+                        cell.appendChild(gateEl);
+                        cell.appendChild(delBtn);
+                    }
+                    grid.appendChild(cell);
+                }
+            }
+        }
+
+        function cleanGateName(type) {
+            //return type.replace('_dag', '†').replace('CC', 'C').replace('X', '').replace('P', '+').replace('RESET', '|0⟩₃');
+            return type
+			.replace('CH', 'C₃')
+			.replace('Z', 'Z₃')
+			.replace('_dag', '†')
+			.replace('X', '')
+			.replace('P', '+')
+			.replace('CCH', 'CC₃')
+			.replace('CZ', 'CZ')
+			.replace('RESET', '|0⟩₃');
+        }
+
+        document.querySelectorAll('.gate-item').forEach(item => {
+            item.addEventListener('dragstart', (e) => {
+                activeDragType = item.dataset.type;
+            });
+        });
+
+        function handleDrop(e, q, s) {
+            e.preventDefault();
+            if (!activeDragType) return;
+
+            removeGate(q, s);
+            const isControlled = activeDragType.startsWith('CC') || activeDragType.startsWith('CZ') || activeDragType === 'CP1' || activeDragType === 'CP2'  || activeDragType === 'C01' || activeDragType === 'C02' || activeDragType === 'C12';
+            
+            gridData[q][s] = {
+                type: activeDragType,
+                isTarget: isControlled,
+                controlQutrit: null
+            };
+
+            activeDragType = null;
+            renderCircuitGrid();
+        }
+
+        function handleCellClick(q, s) {
+            const gate = gridData[q][s];
+            if (!gate) {
+                let targetQ = -1;
+                for (let r = 0; r < totalQutrits; r++) {
+                    if (gridData[r][s] && gridData[r][s].isTarget) {
+                        targetQ = r;
+                        break;
+                    }
+                }
+                if (targetQ !== -1 && targetQ !== q) {
+                    for (let r = 0; r < totalQutrits; r++) {
+                        if (gridData[r][s] && gridData[r][s].type === 'CTRL') removeGate(r, s);
+                    }
+                    gridData[q][s] = { type: 'CTRL', targetQutrit: targetQ };
+                    gridData[targetQ][s].controlQutrit = q;
+                }
+            }
+            renderCircuitGrid();
+        }
+
+        function removeGate(q, s) {
+            const item = gridData[q][s];
+            if (!item) return;
+
+            if (item.type === 'CTRL') {
+                const tgt = item.targetQutrit;
+                if (gridData[tgt] && gridData[tgt][s]) gridData[tgt][s].controlQutrit = null;
+            } else if (item.isTarget && item.controlQutrit !== null) {
+                const ctrl = item.controlQutrit;
+                if (gridData[ctrl] && gridData[ctrl][s]) gridData[ctrl][s] = null;
+            }
+            gridData[q][s] = null;
+            renderCircuitGrid();
+        }
+
+        function addTimeStep() {
+            totalSteps++;
+            for (let q = 0; q < totalQutrits; q++) {
+                gridData[q].push(null);
+            }
+            renderCircuitGrid();
+        }
+
+        function clearCircuit() {
+            totalSteps = 5;
+            initGridData();
+            renderCircuitGrid();
+            document.getElementById('statevectorOutput').innerText = "Circuit reset! 'Run Circuit' to simulate.";
+            const canvas = document.getElementById('histogramCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function runSimulation() {
+            let stateSize = Math.pow(3, totalQutrits);
+            let statevector = new Array(stateSize).fill(0).map(() => O);
+            statevector[0] = I; 
+
+            for (let s = 0; s < totalSteps; s++) {
+                for (let q = 0; q < totalQutrits; q++) {
+                    const gate = gridData[q][s];
+                    if (gate && gate.isTarget && gate.controlQutrit !== null) {
+                        let matrixKey = CONTROL_MAP[gate.type];
+                        let matrix = GATES_1Q[matrixKey];
+                        if (matrix) {
+                            statevector = applyControlledGate(statevector, gate.controlQutrit, q, matrix);
+                        }
+                    }
+                }
+
+                for (let q = 0; q < totalQutrits; q++) {
+                    const gate = gridData[q][s];
+                    if (gate && !gate.isTarget && gate.type !== 'CTRL') {
+                        if (gate.type === 'RESET') {
+                            statevector = applyResetGate(statevector, q);
+                        } else {
+                            let matrix = GATES_1Q[gate.type];
+                            if (matrix) {
+                                statevector = applySingleQutritGate(statevector, q, matrix);
+                            }
+                        }
+                    }
+                }
+            }
+
+            displayStatevector(statevector);
+            drawHistogram(statevector);
+        }
+
+        function applySingleQutritGate(state, targetQ, matrix) {
+            let nextState = new Array(state.length).fill(0).map(() => O);
+            let shift = Math.pow(3, 2 - targetQ);
+            
+            for (let i = 0; i < state.length; i++) {
+                if (state[i].magSq() === 0) continue;
+                
+                let qVal = Math.floor(i / shift) % 3;
+                let baseIdx = i - qVal * shift;
+
+                for (let row = 0; row < 3; row++) {
+                    let nextIdx = baseIdx + row * shift;
+                    let amplChange = matrix[row][qVal].mul(state[i]);
+                    nextState[nextIdx] = nextState[nextIdx].add(amplChange);
+                }
+            }
+            return nextState;
+        }
+
+        function applyControlledGate(state, ctrlQ, targetQ, matrix) {
+            let nextState = new Array(state.length).fill(0).map(() => O);
+            let shiftTarget = Math.pow(3, 2 - targetQ);
+            let shiftCtrl = Math.pow(3, 2 - ctrlQ);
+
+            for (let i = 0; i < state.length; i++) {
+                if (state[i].magSq() === 0) continue;
+
+                let ctrlVal = Math.floor(i / shiftCtrl) % 3;
+                let qVal = Math.floor(i / shiftTarget) % 3;
+
+                if (ctrlVal === 2) { 
+                    let baseIdx = i - qVal * shiftTarget;
+                    for (let row = 0; row < 3; row++) {
+                        let nextIdx = baseIdx + row * shiftTarget;
+                        let amplChange = matrix[row][qVal].mul(state[i]);
+                        nextState[nextIdx] = nextState[nextIdx].add(amplChange);
+                    }
+                } else {
+                    nextState[i] = nextState[i].add(state[i]);
+                }
+            }
+            return nextState;
+        }
+
+        function applyResetGate(state, targetQ) {
+            let nextState = new Array(state.length).fill(0).map(() => O);
+            let shift = Math.pow(3, 2 - targetQ);
+            
+            for (let i = 0; i < state.length; i++) {
+                if (state[i].magSq() === 0) continue;
+                let qVal = Math.floor(i / shift) % 3;
+                let zeroIdx = i - qVal * shift; 
+                nextState[zeroIdx] = nextState[zeroIdx].add(state[i]);
+            }
+            
+            let totalMag = nextState.reduce((acc, c) => acc + c.magSq(), 0);
+            if (totalMag > 0) {
+                let norm = Math.sqrt(totalMag);
+                nextState = nextState.map(c => new Complex(c.r / norm, c.i / norm));
+            }
+            return nextState;
+        }
+
+        function getReversedTernaryString(idx) {
+            let standardStr = idx.toString(3).padStart(3, '0');
+            return standardStr.split('').reverse().join('');
+        }
+
+        function displayStatevector(state) {
+            const container = document.getElementById('statevectorOutput');
+            container.innerHTML = '';
+
+            state.forEach((amplitude, idx) => {
+                if (amplitude.magSq() > 1e-6) {
+                    let reversedTernaryStr = getReversedTernaryString(idx);
+                    const div = document.createElement('div');
+                    div.className = 'state-row';
+                    div.innerHTML = `<span>|${reversedTernaryStr}⟩</span> <span>${amplitude.toString()}</span>`;
+                    container.appendChild(div);
+                }
+            });
+            if(container.innerHTML === '') {
+                container.innerText = "All configurations evaluated to zero!";
+            }
+        }
+
+        function drawHistogram(state) {
+            const canvas = document.getElementById('histogramCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const shots = parseInt(document.getElementById('shotsInput').value) || 1024;
+            const probabilities = state.map(c => c.magSq());
+
+            let counts = new Array(27).fill(0);
+            for (let s = 0; s < shots; s++) {
+                let r = Math.random();
+                let sum = 0;
+                for (let i = 0; i < probabilities.length; i++) {
+                    sum += probabilities[i];
+                    if (r <= sum) {
+                        counts[i]++;
+                        break;
+                    }
+                }
+            }
+
+            const padX = 40, padY = 40;
+            const w = canvas.width - padX * 2;
+            const h = canvas.height - padY * 2;
+            const barWidth = w / 27;
+
+            let maxCount = Math.max(...counts, 1);
+
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(padX, padY);
+            ctx.lineTo(padX, canvas.height - padY);
+            ctx.lineTo(canvas.width - padX, canvas.height - padY);
+            ctx.stroke();
+
+            for (let i = 0; i < 27; i++) {
+                let barHeight = (counts[i] / maxCount) * h;
+                let x = padX + i * barWidth + 2;
+                let y = canvas.height - padY - barHeight;
+
+                if (counts[i] > 0) {
+                    ctx.fillStyle = '#3b82f6';
+                    ctx.fillRect(x, y, barWidth - 4, barHeight);
+                }
+
+                ctx.fillStyle = '#000000';     // #94a3b8     #ffffff
+                ctx.font = '12px arial';        // 8px monospace
+                ctx.save();
+                ctx.translate(x + barWidth/4, canvas.height - padY + 12);
+                ctx.rotate(Math.PI / 2);
+                
+                let reversedTernaryStr = getReversedTernaryString(i);
+                ctx.fillText(reversedTernaryStr, 0, 0);
+                ctx.restore();
+            }
+
+            ctx.fillStyle = '#000000';     // #cbd5e1     #ffffff
+            ctx.font = '12px arial';        // 11px sans-serif
+            //ctx.fillText(maxCount.toString(), padX - 35, padY + 10);
+            ctx.fillText((maxCount/shots).toFixed(2).toString()+"%", padX - 37, padY + 10);
+            ctx.fillText("0.00%", padX - 37, canvas.height - padY);
+        }
+
+        function exportJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
+                steps: totalSteps,
+                grid: gridData
+            }));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "Ternary_QC_Simulator_#.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed.steps && parsed.grid) {
+                        totalSteps = parsed.steps;
+                        gridData = parsed.grid;
+                        renderCircuitGrid();
+                    } else {
+                        alert("Invalid JSON structure!");
+                    }
+                } catch (err) {
+                    alert("Error parsing JSON file!");
+                } finally {
+                    // CRITICAL FIX: Reset file input value so selecting the same file again triggers the change event
+                    event.target.value = "";
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        window.onload = () => {
+            initGridData();
+            renderCircuitGrid();
+        };
+    </script>
+</body>
+</html>
