@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="author" content="Ali Al-Bayaty">
+		<meta name="DC.creator" content="Ali Al-Bayaty">
+		<meta name="DC.date" content="2026-05-12">
+		<meta name="description" content="MAPS | Quaternary State-Space Visualizer">
+		<meta name="keywords" content="quantum, qudit, maps, projective, sphere, quaternary, ququadit, state-space, visualizer">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="shortcut icon" href="https://albayaty.github.io/favicon.ico">
+		<title>MAPS | Ququadit</title>
+
+		<style>
+		html,body{
+			margin:0;
+			overflow:hidden;
+			background:#f5f5f0;
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+		}
+		#ui{
+			position:absolute;
+			top:20px;
+			left:20px;
+			z-index:100;
+			background:#f4f4f9;
+			padding:15px;
+			border-radius:8px;
+			box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+		}
+		#instructions {
+			margin-top: 15px;
+			font-size: 15px;
+			color: #666;
+			max-width: 550px;
+		}
+		h2{
+			margin: 0 0 15px 0;
+			font-size: 16px;
+			color: #333;
+		}
+		.controls { display: flex; gap: 5px; }
+		button{
+			flex: 1;
+			padding: 10px 10px;
+			margin-right: 6px;
+			border: none;
+			border-radius: 8px;
+			font-weight: bold;
+			cursor: pointer;
+			transition: all 0.2s;
+		}
+		#resetBtn{background:#e74c3c;color:white;}
+		#resetBtn:hover { background-color: #c0392b; }
+		#saveBtn{background:#3498db;color:white;}
+		#saveBtn:hover { background-color: #2980b9; }
+		#ui-copyright {
+			position: absolute;
+			bottom: 20px;
+			left: 20px;
+			z-index: 100;
+			background: #f4f4f9;
+			padding: 15px;
+			border-radius: 8px;
+			box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+		}
+		#div-copyright {
+			margin-top: 5px;
+			font-size: 15px;
+			color: #666;
+			max-width: 350px;
+		}
+		</style>
+
+		<!-- This visualizer uses the Three.js, incorporating Orbit Controls, to rotate, zoom in/out, and pan the 3D viewer. -->
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+	</head>
+
+	<body>
+		<div id="ui">
+			<a href="https://albayaty.github.io" title="Ali Al-Bayaty | Professional Portfolio">
+				<i class="bi bi-house-fill" style="font-size: 2rem; color: #2980b9;">
+				<svg xmlns="http://www.w3.org/2000/svg" width="32" height="48" fill="currentColor" class="bi bi-house-fill" viewBox="0 0 16 16">
+				<path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L8 2.207l6.646 6.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293z"/>
+				<path d="m8 3.293 6 6V13.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5V9.293z"/>
+				</svg>
+				</i>
+			</a>
+			
+			<h2>MAPS: Quaternary State-Space Visualizer</h2>
+			<hr>
+			
+			<div class="controls">
+				<button id="resetBtn">Reset All</button>
+				<button id="saveBtn">Save as PNG</button>
+			</div>
+			
+			<div id="instructions">
+				<b>Geometrical parameters:</b><br>
+				<span>
+					<i>d</i> =
+					<input type="text" id="d-num" value=" 4" disabled style="width:22px; border:1px solid #555; padding:2px; border-radius:3px;">
+				</span>
+				<br>
+				<span>
+					<i>δ</i><sub>azm</sub> = 
+					<input type="text" id="delta-azm" value=" π / 4" disabled style="width:45px; border:1px solid #555; padding:2px; border-radius:3px;">
+					rad.
+				</span>
+				<br>
+				<span>
+					∆<sub>4</sub> =
+					<input type="text" id="Delta-d" value=" π / 2" disabled style="width:60px; border:1px solid #555; padding:2px; border-radius:3px;">
+					rad.
+				</span>
+				<br>
+				<span>
+					ω<sub>4</sub><sup><i>k</i></sup> =
+					<input type="text" id="omega-dk" value=" {±1, ±i}" disabled style="width:65px; border:1px solid #555; padding:2px; border-radius:3px;">
+				</span>
+			</div>
+			
+			<div id="instructions">
+				<b>Instructions:</b> <br>
+				• Choose the phases of all states {|0⟩, |1⟩, |2⟩, |3⟩}. <br>
+				• Once four phases are chosen, a quadrilateral is drawn. <br>
+				• Drag to rotate, zoom in/out, and pan the 3D viewer.
+			</div>
+		</div>
+
+		<div id="ui-copyright">
+			<div id="div-copyright">
+				&copy; 2026 Ali Al-Bayaty • All Rights Reserved
+			</div>
+		</div>
+
+		<script>
+		// -------------------------------------------------------
+		// SCENE
+		// -------------------------------------------------------
+		const scene = new THREE.Scene();
+		scene.background = new THREE.Color(0xffffff);
+
+		// -------------------------------------------------------
+		// CAMERA
+		// -------------------------------------------------------
+		const camera = new THREE.PerspectiveCamera(
+			40,
+			window.innerWidth/window.innerHeight,
+			0.1,
+			5000
+		);
+		camera.position.set(450,320,520);
+
+		// -------------------------------------------------------
+		// RENDERER
+		// -------------------------------------------------------
+		const renderer = new THREE.WebGLRenderer({
+			antialias:true,
+			preserveDrawingBuffer:true
+		});
+		renderer.setSize(window.innerWidth,window.innerHeight);
+		document.body.appendChild(renderer.domElement);
+
+		// -------------------------------------------------------
+		// CONTROLS
+		// -------------------------------------------------------
+		const controls = new THREE.OrbitControls(
+			camera,
+			renderer.domElement
+		);
+		controls.enableDamping = true;
+
+		// -------------------------------------------------------
+		// AXES (NO CENTER NODE)
+		// -------------------------------------------------------
+		const AXIS_LENGTH = 200;
+
+		const symbols = ["– i","– 1","1","i"];
+		const values  = [-2,-1,1,2];
+
+		const axes = [];
+
+		for(let i=0;i<4;i++){
+			const angle = i * Math.PI/2;
+			
+			axes.push(
+				new THREE.Vector3(
+					Math.cos(angle),
+					1.0,
+					Math.sin(angle)
+				).normalize()
+			);
+		}
+
+		const axisLabels = ["|0⟩","|3⟩","|2⟩","|1⟩"];
+		const lineMat = new THREE.LineBasicMaterial({color:0x000000});
+
+		axes.forEach((dir,i)=>{
+			const geo = new THREE.BufferGeometry().setFromPoints([
+				dir.clone().multiplyScalar(-AXIS_LENGTH-30),
+				dir.clone().multiplyScalar( AXIS_LENGTH+30)
+			]);
+
+			scene.add(new THREE.Line(geo,lineMat));
+
+			const label = makeText(axisLabels[i], color = "black");
+			label.position.copy(dir.clone().multiplyScalar(AXIS_LENGTH+55));
+			label.renderOrder = 999;
+			scene.add(label);
+		});
+
+		// -------------------------------------------------------
+		// STATE
+		// -------------------------------------------------------
+		const clickable = [];
+		const selected = [null,null,null,null];
+
+		// -------------------------------------------------------
+		// TEXT
+		// -------------------------------------------------------
+		function makeText(text, color = "red"){
+			const canvas = document.createElement("canvas");
+			canvas.width = 256;
+			canvas.height = 128;
+
+			const ctx = canvas.getContext("2d");
+
+			ctx.font = "bold 64px Arial";
+			ctx.fillStyle = color;
+			ctx.textAlign = "center";
+			ctx.textBaseline = "middle";
+			ctx.fillText(text,128,64);
+
+			const tex = new THREE.CanvasTexture(canvas);
+
+			const mat = new THREE.SpriteMaterial({
+				map:tex,
+				transparent:true
+			});
+
+			const sprite = new THREE.Sprite(mat);
+			sprite.scale.set(85,42,1);
+			return sprite;
+		}
+
+		// -------------------------------------------------------
+		// NODES (NO CENTER NODE ANYWHERE)
+		// -------------------------------------------------------
+		axes.forEach((dir,axisIndex)=>{
+			symbols.forEach((s,valueIndex)=>{
+				const pos = dir.clone().multiplyScalar(
+					values[valueIndex]*(AXIS_LENGTH/2)
+				);
+
+				const sphere = new THREE.Mesh(
+					new THREE.SphereGeometry(5,16,16),
+					new THREE.MeshBasicMaterial({color:0x000000})
+				);
+
+				sphere.position.copy(pos);
+				sphere.userData = {axisIndex,valueIndex};
+				clickable.push(sphere);
+				scene.add(sphere);
+
+				const label = makeText(s);
+				label.position.copy(pos.clone().add(new THREE.Vector3(15,15,15)));
+				scene.add(label);
+			});
+		});
+
+		// -------------------------------------------------------
+		// INTERACTION
+		// -------------------------------------------------------
+		const raycaster = new THREE.Raycaster();
+		const mouse = new THREE.Vector2();
+
+		let edges = [];
+		let quad = null;
+
+		window.addEventListener("pointerdown",(e)=>{
+			mouse.x = (e.clientX/window.innerWidth)*2 - 1;
+			mouse.y = -(e.clientY/window.innerHeight)*2 + 1;
+
+			raycaster.setFromCamera(mouse,camera);
+
+			const hits = raycaster.intersectObjects(clickable);
+
+			if(hits.length===0) return;
+
+			const obj = hits[0].object;
+
+			selected[obj.userData.axisIndex] = obj.userData.valueIndex;
+
+			refreshNodes();
+			update();
+		});
+
+		// -------------------------------------------------------
+		// NODE COLORS
+		// -------------------------------------------------------
+		function refreshNodes(){
+
+			clickable.forEach(n=>{
+				const a = n.userData.axisIndex;
+				const v = n.userData.valueIndex;
+
+				n.material.color.set(
+					selected[a] === v ? 0x0000ff : 0x000000     // pink: 0xff3366
+				);
+			});
+		}
+
+		// -------------------------------------------------------
+		// QUAD
+		// -------------------------------------------------------
+		function update(){
+
+			edges.forEach(e=>scene.remove(e));
+			edges=[];
+			if(quad) scene.remove(quad);
+
+			if(selected.some(v=>v===null)) return;
+
+			const pts = selected.map((v,i)=>
+				axes[i].clone().multiplyScalar(values[v]*(AXIS_LENGTH/2))
+			);
+
+			for(let i=0;i<4;i++){
+				const line = new THREE.Line(
+					new THREE.BufferGeometry().setFromPoints([
+						pts[i],
+						pts[(i+1)%4]
+					]),
+					new THREE.LineBasicMaterial({color:"#00000000"})
+				);
+
+				edges.push(line);
+				scene.add(line);
+			}
+
+			const geo = new THREE.BufferGeometry();
+
+			geo.setAttribute("position",
+				new THREE.BufferAttribute(new Float32Array([
+					pts[0].x,pts[0].y,pts[0].z,
+					pts[1].x,pts[1].y,pts[1].z,
+					pts[2].x,pts[2].y,pts[2].z,
+
+					pts[0].x,pts[0].y,pts[0].z,
+					pts[2].x,pts[2].y,pts[2].z,
+					pts[3].x,pts[3].y,pts[3].z,
+
+					pts[0].x,pts[0].y,pts[0].z,
+					pts[1].x,pts[1].y,pts[1].z,
+					pts[3].x,pts[3].y,pts[3].z,
+
+					pts[1].x,pts[1].y,pts[1].z,
+					pts[2].x,pts[2].y,pts[2].z,
+					pts[3].x,pts[3].y,pts[3].z
+				]),3)
+			);
+
+			quad = new THREE.Mesh(
+				geo,
+				new THREE.MeshBasicMaterial({
+					color:0x3399ff,
+					transparent:true,
+					opacity:0.35,
+					side:THREE.DoubleSide,
+					depthTest:false,
+					depthWrite:false
+				})
+			);
+
+			quad.renderOrder = 999;
+			scene.add(quad);
+		}
+
+		// -------------------------------------------------------
+		// TRANSPARENT SPHERE
+		// -------------------------------------------------------
+		/*
+		const containmentSphere = new THREE.Mesh(
+			new THREE.SphereGeometry(AXIS_LENGTH+185, 64, 64),
+
+			new THREE.MeshBasicMaterial({
+				color:0xa6a09b,        // 0xff66cc    0xfafaf9
+				transparent:true,
+				opacity:0.12,
+				side:THREE.DoubleSide,
+				depthWrite:false
+			})
+		);
+		containmentSphere.renderOrder = -1;
+		scene.add(containmentSphere);
+		*/
+
+		// -------------------------------------------------------
+		// TRANSPARENT SPHERICAL WIREFRAME
+		// -------------------------------------------------------
+		const sphereWire = new THREE.LineSegments(
+
+			new THREE.WireframeGeometry(
+				new THREE.SphereGeometry(AXIS_LENGTH+35, 32, 32)
+			),
+
+			new THREE.LineBasicMaterial({
+				color:0xa6a09b,
+				transparent:true,
+				opacity:0.10
+			})
+		);
+		sphereWire.renderOrder = -1;
+		scene.add(sphereWire);
+
+		// -------------------------------------------------------
+		// BUTTONS
+		// -------------------------------------------------------
+		resetBtn.onclick=()=>{
+			selected.fill(null);
+			refreshNodes();
+			update();
+			camera.position.set(450,320,520);
+		};
+
+		saveBtn.onclick=()=>{
+			const a=document.createElement("a");
+			a.download="MAPS_Ququadit_#.png";
+			a.href=renderer.domElement.toDataURL("image/png");
+			a.click();
+		};
+
+		// -------------------------------------------------------
+		// RESIZE + LOOP
+		// -------------------------------------------------------
+		window.addEventListener("resize",()=>{
+			camera.aspect=window.innerWidth/window.innerHeight;
+			camera.updateProjectionMatrix();
+			renderer.setSize(window.innerWidth,window.innerHeight);
+		});
+
+		function animate(){
+			requestAnimationFrame(animate);
+			controls.update();
+			renderer.render(scene,camera);
+		}
+
+		animate();
+		</script>
+	</body>
+</html>

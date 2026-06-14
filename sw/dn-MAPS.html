@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="author" content="Ali Al-Bayaty">
+		<meta name="DC.creator" content="Ali Al-Bayaty">
+		<meta name="DC.date" content="2026-05-12">
+		<meta name="description" content="MAPS | Generalized Qudit State-Space Visualizer">
+		<meta name="keywords" content="quantum, qudit, maps, projective, sphere, generalized, ternary, quaternary, quintit, state-space, visualizer">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="shortcut icon" href="https://albayaty.github.io/favicon.ico">
+		<title>MAPS | Qudit</title>
+
+		<style>
+		html,body{
+			margin:0;
+			overflow:hidden;
+			background:#f5f5f0;
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+		}
+		#ui{
+			position:absolute;
+			top:20px;
+			left:20px;
+			z-index:100;
+			background:#f4f4f9;
+			padding:15px;
+			border-radius:8px;
+			box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+		}
+		#instructions {
+			margin-top: 15px;
+			font-size: 15px;
+			color: #666;
+			max-width: 550px;
+		}
+		h2{
+			margin: 0 0 15px 0;
+			font-size: 16px;
+			color: #333;
+		}
+		.controls { display: flex; gap: 5px; }
+		button{
+			flex: 1;
+			padding: 8px 10px;
+			margin-right: 6px;
+			border: none;
+			border-radius: 8px;
+			font-weight: bold;
+			cursor: pointer;
+			transition: all 0.2s;
+		}
+		#resetBtn {background:#e74c3c;color:white;}
+		#resetBtn:hover { background-color: #c0392b; }
+		#saveBtn {background:#3498db;color:white;}
+		#saveBtn:hover { background-color: #2980b9; }
+		#computeBtn { background-color: #6b7280; }
+		#computeBtn:hover { background-color: #475569; }
+		#ui-copyright {
+			position: absolute;
+			bottom: 20px;
+			left: 20px;
+			z-index: 100;
+			background: #f4f4f9;
+			padding: 15px;
+			border-radius: 8px;
+			box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+		}
+		#div-copyright {
+			margin-top: 5px;
+			font-size: 15px;
+			color: #666;
+			max-width: 350px;
+		}
+		</style>
+
+		<!-- This visualizer uses the Three.js, incorporating Orbit Controls, to rotate, zoom in/out, and pan the 3D viewer. -->
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+	</head>
+
+	<body>
+		<div id="ui">
+			<a href="https://albayaty.github.io" title="Ali Al-Bayaty | Professional Portfolio">
+				<i class="bi bi-house-fill" style="font-size: 2rem; color: #2980b9;">
+				<svg xmlns="http://www.w3.org/2000/svg" width="32" height="48" fill="currentColor" class="bi bi-house-fill" viewBox="0 0 16 16">
+				<path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L8 2.207l6.646 6.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293z"/>
+				<path d="m8 3.293 6 6V13.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5V9.293z"/>
+				</svg>
+				</i>
+			</a>
+			
+			<h2>MAPS: Generalized State-Space Visualizer</h2>
+			<hr>
+			
+			<div class="controls">
+				<button id="computeBtn">Compute</button>
+				<button id="resetBtn">Reset All</button>
+				<button id="saveBtn">Save as PNG</button>
+			</div>
+			
+			<div id="instructions">
+				<b>Geometrical parameters:</b><br>
+				<span>
+					<label for="d-num"><i>d</i> = </label>
+					<input type="number" id="d-num" value="3" min="3" max="100" style="width:50px; border:1px solid #555; padding:2px; border-radius:3px;">
+				</span>
+				<br>
+				<span>
+					<label for="delta-azm"><i>δ</i><sub>azm</sub> = </label>
+					<select name="delta-azm" id="delta-azm" style="width:60px; border:1px solid #555; padding:2px; border-radius:3px;">
+						<option value="2.0">π / 8</option>
+						<option value="1.0" selected>π / 4</option>
+						<option value="0.0">π / 2</option>
+					</select>
+					rad.
+				</span>
+				<br>
+				<span>
+					<label for="Delta-d">∆<sub><i>d</i></sub> = </label>
+					<input type="text" id="Delta-d" value=" 2π / 3" disabled style="width:69px; border:1px solid #555; padding:2px; border-radius:3px;">
+					rad.
+				</span>
+				<br>
+				<span>
+					<label for="omega-dk">ω<sub><i>d</i></sub><sup><i>k</i></sup> = </label>
+					<input type="text" id="omega-dk" value=" {±1, ±ω, ..., ±ωᵈ⁻¹}" disabled style="width:150px; border:1px solid #555; padding:2px; border-radius:3px;">
+				</span>
+			</div>
+			
+			<div id="instructions">
+				<b>Instructions:</b> <br>
+				• Choose the geometrical parameters, then 'Compute'. <br>
+				• For ease of illustration, no polygons are drawn. <br>
+				• Drag to rotate, zoom in/out, and pan the 3D viewer.
+			</div>
+		</div>
+
+		<div id="ui-copyright">
+			<div id="div-copyright">
+				&copy; 2026 Ali Al-Bayaty • All Rights Reserved
+			</div>
+		</div>
+
+		<script>
+		// -------------------------------------------------------
+		// GEOMETRICAL PARAMETERS
+		// -------------------------------------------------------
+		const d_num = document.getElementById('d-num');
+		const delta_azm = document.getElementById('delta-azm');
+		const Delta_d = document.getElementById('Delta-d');		
+		
+		// -------------------------------------------------------
+		// SCENE
+		// -------------------------------------------------------
+		const scene = new THREE.Scene();
+		scene.background = new THREE.Color(0xffffff);
+
+		// -------------------------------------------------------
+		// CAMERA
+		// -------------------------------------------------------
+		const camera = new THREE.PerspectiveCamera(
+			35,
+			window.innerWidth/window.innerHeight,
+			0.1,
+			5000
+		);
+		camera.position.set(350, 400, 900);
+
+		// -------------------------------------------------------
+		// RENDERER
+		// -------------------------------------------------------
+		const renderer = new THREE.WebGLRenderer({
+			antialias:true,
+			preserveDrawingBuffer:true
+		});
+		renderer.setSize(window.innerWidth,window.innerHeight);
+		document.body.appendChild(renderer.domElement);
+
+		// -------------------------------------------------------
+		// CONTROLS
+		// -------------------------------------------------------
+		const controls = new THREE.OrbitControls(
+			camera,
+			renderer.domElement
+		);
+		controls.enableDamping = true;
+
+		// -------------------------------------------------------
+		// AXES and NODES (NO CENTER NODE '0')
+		// -------------------------------------------------------
+		const AXIS_LENGTH = 100;
+		
+		function drawAxesNodes( d_radix=3, delta_azm_angle=1.0 ){
+			const symbols = ["− ωᵈ⁻¹", "...", "− ω", "− 1", "1", "ω", "...", "ωᵈ⁻¹"];
+			const values = [-4, -3, -2, -1, 1, 2, 3, 4];
+			const axes = [];
+			let AXIS_LENGTH_DIV = AXIS_LENGTH/1.7;
+			
+			for (let i=0; i<d_radix; i++) {
+				const angle = i * (2*Math.PI)/d_radix;
+
+				axes.push(
+					new THREE.Vector3(
+						Math.cos(angle),
+						delta_azm_angle,
+						Math.sin(angle)
+					).normalize()
+				);
+			}
+			
+			const axisLabels = ["|0⟩"];    // ["|0⟩", "|d-1⟩", "|d-2⟩", ..., "|1⟩"];
+			const lineMat = new THREE.LineBasicMaterial({color:0x000000});
+			
+			for (let i=d_radix-1; i>0; i--) {
+				const d_state = "|" + i.toString() + "⟩";
+				axisLabels.push( d_state );
+			}
+			
+			// Drawing axes:
+			axes.forEach((dir,i)=>{
+				const geo = new THREE.BufferGeometry().setFromPoints([
+					dir.clone().multiplyScalar(-AXIS_LENGTH-180),
+					dir.clone().multiplyScalar( AXIS_LENGTH+180)
+				]);
+
+				scene.add(new THREE.Line(geo,lineMat));
+
+				const label = makeText(axisLabels[i], color = "black");
+				label.position.copy(dir.clone().multiplyScalar(AXIS_LENGTH+210));
+				label.renderOrder = 999;
+				scene.add(label);
+			});
+			
+			// Drawing nodes:
+			axes.forEach((dir,axisIndex)=>{
+				symbols.forEach((s,valueIndex)=>{
+					const pos = dir.clone().multiplyScalar(
+						values[valueIndex]*(AXIS_LENGTH_DIV)
+					);
+
+					const sphere = new THREE.Mesh(
+						new THREE.SphereGeometry(6,16,16),
+						new THREE.MeshBasicMaterial({color:0x000000})
+					);
+
+					sphere.position.copy(pos);
+					sphere.userData = {axisIndex,valueIndex};
+					scene.add(sphere);
+
+					const label = makeText(s);
+					label.position.copy(pos.clone().add(new THREE.Vector3(15,15,15)));
+					scene.add(label);
+				});
+			});
+		}
+
+		// -------------------------------------------------------
+		// TEXT ANNOTATION
+		// -------------------------------------------------------
+		function makeText(text, color = "red"){
+			const canvas = document.createElement("canvas");
+			canvas.width = 256;
+			canvas.height = 128;
+
+			const ctx = canvas.getContext("2d");
+
+			ctx.font = "bold 64px Arial";
+			ctx.fillStyle = color;
+			ctx.textAlign = "center";
+			ctx.textBaseline = "middle";
+			ctx.fillText(text,128,64);
+
+			const tex = new THREE.CanvasTexture(canvas);
+
+			const mat = new THREE.SpriteMaterial({
+				map:tex,
+				transparent:true
+			});
+
+			const sprite = new THREE.Sprite(mat);
+			sprite.scale.set(85,42,1);
+			return sprite;
+		}
+		
+		// -------------------------------------------------------
+		// TRANSPARENT SPHERE
+		// -------------------------------------------------------
+		/*
+		const containmentSphere = new THREE.Mesh(
+			new THREE.SphereGeometry(AXIS_LENGTH+185, 64, 64),
+
+			new THREE.MeshBasicMaterial({
+				color:0xa6a09b,        // 0xff66cc    0xfafaf9
+				transparent:true,
+				opacity:0.12,
+				side:THREE.DoubleSide,
+				depthWrite:false
+			})
+		);
+		containmentSphere.renderOrder = -1;
+		scene.add(containmentSphere);
+		*/
+
+		// -------------------------------------------------------
+		// TRANSPARENT SPHERICAL WIREFRAME
+		// -------------------------------------------------------
+		const sphereWire = new THREE.LineSegments(
+
+			new THREE.WireframeGeometry(
+				new THREE.SphereGeometry(AXIS_LENGTH+185, 32, 32)
+			),
+
+			new THREE.LineBasicMaterial({
+				color:0xa6a09b,
+				transparent:true,
+				opacity:0.10
+			})
+		);
+		sphereWire.renderOrder = -1;
+		scene.add(sphereWire);
+		
+		// -------------------------------------------------------
+		// REMOVE ALL GEOMETRIES
+		// -------------------------------------------------------
+		function removeAllGeometries(){
+			const objectsToRemove = [];
+
+			scene.traverse((obj) => {
+				if (obj !== scene && obj !== camera && obj !== renderer && obj !== controls && obj !== sphereWire) {
+					objectsToRemove.push(obj);
+				}
+			});
+
+			objectsToRemove.forEach(obj => {
+				scene.remove(obj);
+
+				if (obj.geometry) {
+					obj.geometry.dispose();
+				}
+
+				if (obj.material) {
+					if (Array.isArray(obj.material)) {
+						obj.material.forEach(mat => {
+							if (mat.map) mat.map.dispose();
+							mat.dispose();
+						});
+
+					} else {
+						if (obj.material.map) {
+							obj.material.map.dispose();
+						}
+						obj.material.dispose();
+					}
+				}
+			});
+		}
+
+		// -------------------------------------------------------
+		// BUTTONS
+		// -------------------------------------------------------
+		computeBtn.onclick=()=>{
+			const d_radix_value = parseInt(d_num.value);
+			const delta_azm_value = parseInt(delta_azm.value);
+			
+			Delta_d.value = " 2π / " + d_radix_value.toString();
+			
+			removeAllGeometries();
+			drawAxesNodes( d_radix_value, delta_azm_value );
+			camera.position.set(350, 400, 900);
+		};
+		
+		resetBtn.onclick=()=>{
+			d_num.value = "3";
+			delta_azm.value = "1.0";
+			Delta_d.value = " 2π / 3";
+			
+			removeAllGeometries();
+			camera.position.set(350, 400, 900);
+		};
+
+		saveBtn.onclick=()=>{
+			const a=document.createElement("a");
+			a.download="MAPS_Qudit_#.png";
+			a.href=renderer.domElement.toDataURL("image/png");
+			a.click();
+		};
+		
+		// -------------------------------------------------------
+		// RESIZE + LOOP
+		// -------------------------------------------------------
+		window.addEventListener("resize",()=>{
+			camera.aspect=window.innerWidth/window.innerHeight;
+			camera.updateProjectionMatrix();
+			renderer.setSize(window.innerWidth,window.innerHeight);
+		});
+
+		function animate(){
+			requestAnimationFrame(animate);
+			controls.update();
+			renderer.render(scene,camera);
+		}
+		
+		animate();
+		</script>
+	</body>
+</html>
