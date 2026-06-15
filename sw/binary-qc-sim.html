@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="author" content="Ali Al-Bayaty">
+    <meta name="DC.creator" content="Ali Al-Bayaty">
+    <meta name="DC.date" content="2024-06-15">
+    <meta name="description" content="2-Input Binary Quantum Circuit Simulator">
+    <meta name="keywords" content="quantum, binary, Bloch sphere, circuit, simulator">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="https://albayaty.github.io/favicon.ico">
+    <title>Binary QC Simulator</title>
+    <!-- This simulator uses Plotly to draw the Bloch spheres. -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        :root { --primary: #6200ea; --bg: #f8f9fa; --gate-size: 50px; }
+        body { font-family: 'Segoe UI', monospace; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        
+        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 30px rgba(0,0,0,0.1); width: 1000px; max-width: 95vw; }
+        h2 { margin-top: 0; color: #333; display: flex; justify-content: space-between; align-items: center; }
+        button { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+        button:hover { opacity: 0.85; }
+
+        /* Palette */
+        .palette { display: flex; gap: 10px; margin-bottom: 20px; padding: 15px; background: #eee; border-radius: 8px; justify-content: center; }
+        .gate { 
+            width: var(--gate-size); height: var(--gate-size); 
+            background: white; border: 2px solid var(--primary); 
+            color: var(--primary); font-weight: bold; 
+            display: flex; align-items: center; justify-content: center; 
+            cursor: grab; border-radius: 6px; user-select: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .gate.control { background-color: #333; border-color: #333; color: white; border-radius: 50%; width: 40px; height: 40px; margin: 5px; }
+        .gate.target { border-radius: 50%; font-size: 1.5rem; }
+
+        /* Circuit Grid */
+        .circuit-wrapper { overflow-x: auto; margin-bottom: 30px; border: 1px solid #ddd; border-radius: 8px; padding: 20px; background: white; }
+        .wire-row { display: flex; align-items: center; margin-bottom: 20px; position: relative; }
+        .wire-line { position: absolute; left: 60px; right: 0; top: 50%; height: 2px; background: #ccc; z-index: 0; }
+        .qubit-label { width: 60px; font-weight: bold; font-size: 1.2rem; z-index: 1; position: relative; background: white; }
+        .slot-container { display: flex; z-index: 1; padding-left: 10px; }
+        .slot {
+            width: var(--gate-size); height: var(--gate-size);
+            margin-right: 20px; 
+            border: 2px dashed #e0e0e0; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.8);
+            transition: all 0.2s;
+        }
+        .slot.drag-over { border-color: var(--primary); background: rgba(98, 0, 234, 0.1); }
+
+        /* Visualization Layout */
+        .vis-container { display: flex; flex-wrap: wrap; gap: 20px; }
+        
+        .bars-section { flex: 1; min-width: 300px; padding: 20px; background: #f4f4f4; border-radius: 8px; }
+        .bar-row { display: flex; align-items: center; margin-bottom: 8px; }
+        .state-label { width: 50px; font-family: monospace; font-weight: bold; }
+        .bar-track { flex-grow: 1; height: 20px; background: #ddd; border-radius: 4px; overflow: hidden; }
+        .bar-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.4s; }
+        .bar-val { width: 40px; text-align: right; margin-left: 10px; font-size: 0.8rem; }
+        .complex-val { font-size: 0.75rem; color: #666; margin-left: 10px; width: 100px; text-align: right; }
+
+        .bloch-section { flex: 2; display: flex; justify-content: space-around; background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 10px; }
+        .bloch-wrapper { width: 300px; height: 350px; text-align: center; }
+        .bloch-plot { width: 100%; height: 300px; }
+    </style>
+</head>
+
+<body>
+	<div class="container">
+		<span>
+			<a href="https://albayaty.github.io" title="Ali Al-Bayaty | Professional Portfolio">
+			<i class="bi bi-house-fill" style="font-size: 2rem; color: #6200ea;">
+			<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-house-fill" viewBox="0 0 16 16">
+				<path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L8 2.207l6.646 6.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293z"/>
+				<path d="m8 3.293 6 6V13.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5V9.293z"/>
+			</svg>
+			</i>
+			</a>
+		</span>
+		<hr>
+		
+		<h2>
+			2-Input Binary QC Simulator
+			<button onclick="resetCircuit()">⏻ Reset All</button>
+		</h2>
+
+		<div class="palette">
+			<div class="gate" draggable="true" data-type="H" title="Hadamard gate">H</div>
+			<div class="gate" draggable="true" data-type="X" title="Pauli-X (NOT) gate">X</div>
+			<div class="gate" draggable="true" data-type="Y" title="Pauli-Y gate">Y</div>
+			<div class="gate" draggable="true" data-type="Z" title="Pauli-Z gate">Z</div>
+			<div class="gate control" draggable="true" data-type="C" title="Control of Feynman (CNOT)">●</div>
+			<div class="gate target" draggable="true" data-type="T" title="Target of Feynman (CNOT)">⊕</div>
+		</div>
+
+		<div class="circuit-wrapper">
+			<div class="wire-row">
+				<div class="wire-line"></div>
+				<div class="qubit-label">q₀<sub>|0⟩</sub></div>
+				<div class="slot-container" id="slots-0"></div>
+			</div>
+			<div class="wire-row">
+				<div class="wire-line"></div>
+				<div class="qubit-label">q₁<sub>|0⟩</sub></div>
+				<div class="slot-container" id="slots-1"></div>
+			</div>
+		</div>
+
+		<div class="vis-container">
+			<div class="bars-section">
+				<h3>Statevector (𝜓): |q₀q₁⟩</h3>
+				<div id="bars"></div>
+			</div>
+
+			<div class="bloch-section">
+				<div class="bloch-wrapper">
+					<h4>Bloch sphere: |q₀⟩</h4>
+					<div id="bloch0" class="bloch-plot"></div>
+				</div>
+				<div class="bloch-wrapper">
+					<h4>Bloch sphere: |q₁⟩</h4>
+					<div id="bloch1" class="bloch-plot"></div>
+				</div>
+			</div>
+		</div>
+		
+		<br>
+		<div class="palette">
+		<p style="font-size: 1.0rem; margin: 0 0 8px 0; color: #94a3b8;">&copy; 2024 Ali Al-Bayaty • All Rights Reserved</p>
+		</div>
+	</div>
+
+	<script>
+		// -------------------------------
+		// MATH ENGINE
+		// -------------------------------
+		class Complex {
+			constructor(re, im) { this.re = re; this.im = im; }
+			add(c) { return new Complex(this.re + c.re, this.im + c.im); }
+			sub(c) { return new Complex(this.re - c.re, this.im - c.im); }
+			mul(c) { return new Complex(this.re * c.re - this.im * c.im, this.re * c.im + this.im * c.re); }
+			conjugate() { return new Complex(this.re, -this.im); }
+			magSq() { return this.re * this.re + this.im * this.im; }
+			toString() { 
+				let r = this.re.toFixed(2);
+				let i = this.im >= 0 ? '+' + this.im.toFixed(2) + 'i' : this.im.toFixed(2) + 'i';
+				return `${r}${i}`;
+			}
+		}
+
+		const ZERO = new Complex(0,0);
+		const ONE = new Complex(1,0);
+
+		const GATES_1Q = {
+			'I': [[ONE, ZERO], [ZERO, ONE]],
+			'H': [[new Complex(0.7071,0), new Complex(0.7071,0)], [new Complex(0.7071,0), new Complex(-0.7071,0)]],
+			'X': [[ZERO, ONE], [ONE, ZERO]],
+			'Y': [[ZERO, new Complex(0,-1)], [new Complex(0,1), ZERO]],
+			'Z': [[ONE, ZERO], [ZERO, new Complex(-1,0)]],
+			'T': [[ZERO, ONE], [ONE, ZERO]] 
+		};
+
+		const CNOT_01 = [
+			[ONE, ZERO, ZERO, ZERO], [ZERO, ONE, ZERO, ZERO],
+			[ZERO, ZERO, ZERO, ONE], [ZERO, ZERO, ONE, ZERO]
+		];
+		const CNOT_10 = [
+			[ONE, ZERO, ZERO, ZERO], [ZERO, ZERO, ZERO, ONE],
+			[ZERO, ZERO, ONE, ZERO], [ZERO, ONE, ZERO, ZERO]
+		];
+
+		function tensorProduct(m1, m2) {
+			let res = [];
+			for(let r=0; r<4; r++) res[r] = new Array(4).fill(ZERO);
+			for(let i=0; i<2; i++) {
+				for(let j=0; j<2; j++) {
+					const scalar = m1[i][j];
+					for(let k=0; k<2; k++) {
+						for(let l=0; l<2; l++) {
+							res[i*2 + k][j*2 + l] = scalar.mul(m2[k][l]);
+						}
+					}
+				}
+			}
+			return res;
+		}
+
+		function matMulVec(matrix, vec) {
+			let res = [ZERO, ZERO, ZERO, ZERO];
+			for (let r = 0; r < 4; r++) {
+				let sum = ZERO;
+				for (let c = 0; c < 4; c++) {
+					sum = sum.add(matrix[r][c].mul(vec[c]));
+				}
+				res[r] = sum;
+			}
+			return res;
+		}
+
+		// -------------------------------
+		// BLOCH VECTOR CALCULATION (Partial Trace)
+		// -------------------------------
+		function getBlochVector(qubitIndex, s) {
+			// State is [c00, c01, c10, c11] (Using a,b,c,d for brevity)
+			let a = s[0], b = s[1], c = s[2], d = s[3];
+			
+			let x, y, z;
+
+			if (qubitIndex === 0) {
+				// Trace out Qubit 1 (System B)
+				// Rho_A = [[ |a|^2+|b|^2,  ac* + bd* ], 
+				//          [ ca* + db*,    |c|^2+|d|^2 ]]
+				
+				// X = 2*Re(rho_01) = 2*Re(ac* + bd*)
+				let offDiag = a.mul(c.conjugate()).add(b.mul(d.conjugate()));
+				x = 2 * offDiag.re;
+				y = 2 * offDiag.im;
+				
+				// Z = rho_00 - rho_11
+				let p0 = a.magSq() + b.magSq();
+				let p1 = c.magSq() + d.magSq();
+				z = p0 - p1;
+
+			} else {
+				// Trace out Qubit 0 (System A)
+				// Rho_B = [[ |a|^2+|c|^2,  ab* + cd* ], 
+				//          [ ba* + dc*,    |b|^2+|d|^2 ]]
+				
+				// X = 2*Re(ab* + cd*)
+				let offDiag = a.mul(b.conjugate()).add(c.mul(d.conjugate()));
+				x = 2 * offDiag.re;
+				y = 2 * offDiag.im;
+				
+				// Z = rho_00 - rho_11
+				let p0 = a.magSq() + c.magSq();
+				let p1 = b.magSq() + d.magSq();
+				z = p0 - p1;
+			}
+
+			return { x, y, z };
+		}
+
+		// -------------------------------
+		// UI & LOGIC
+		// -------------------------------
+		const COLUMNS = 10;
+		let grid = Array(2).fill(null).map(() => Array(COLUMNS).fill(null));
+
+		function calculateState() {
+			let state = [ONE, ZERO, ZERO, ZERO]; 
+
+			for (let col = 0; col < COLUMNS; col++) {
+				const g0 = grid[0][col];
+				const g1 = grid[1][col];
+
+				if (g0 === 'C' && g1 === 'T') { state = matMulVec(CNOT_01, state); continue; }
+				if (g0 === 'T' && g1 === 'C') { state = matMulVec(CNOT_10, state); continue; }
+
+				const m0 = GATES_1Q[g0] || GATES_1Q['I']; 
+				const m1 = GATES_1Q[g1] || GATES_1Q['I'];
+				
+				const mat0 = (g0 === 'C' || g0 === 'T') ? GATES_1Q['I'] : (g0 === 'T' ? GATES_1Q['X'] : m0);
+				const mat1 = (g1 === 'C' || g1 === 'T') ? GATES_1Q['I'] : (g1 === 'T' ? GATES_1Q['X'] : m1);
+
+				state = matMulVec(tensorProduct(mat0, mat1), state);
+			}
+			
+			renderResults(state);
+			drawBloch(0, state);
+			drawBloch(1, state);
+		}
+
+		// -------------------------------
+		// PLOTLY RENDERING
+		// -------------------------------
+		function drawBloch(qubitIndex, state) {
+			const vec = getBlochVector(qubitIndex, state);
+			
+			// Sphere Mesh
+			const sphereData = {
+				type: 'surface',
+				x: [], y: [], z: [],
+				showscale: false, opacity: 0.1, colorscale: 'Greys',
+				hoverinfo: 'skip'
+			};
+			
+			// Simple sphere generation
+			const steps = 20;
+			for(let i=0; i<steps; i++) {
+				let theta = (i * Math.PI) / (steps-1);
+				let rowX = [], rowY = [], rowZ = [];
+				for(let j=0; j<steps; j++) {
+					let phi = (j * 2 * Math.PI) / (steps-1);
+					rowX.push(Math.sin(theta)*Math.cos(phi));
+					rowY.push(Math.sin(theta)*Math.sin(phi));
+					rowZ.push(Math.cos(theta));
+				}
+				sphereData.x.push(rowX); sphereData.y.push(rowY); sphereData.z.push(rowZ);
+			}
+			
+			// The Bloch Vector (Arrow)
+			const arrowData = {
+				type: 'scatter3d',
+				mode: 'lines+markers',
+				x: [0, vec.x], y: [0, vec.y], z: [0, vec.z],
+				line: { color: '#6200ea', width: 6 },
+				marker: { size: 4, color: '#6200ea' },
+				hoverinfo: 'text',
+				text: `x:${vec.x.toFixed(2)}<br>y:${vec.y.toFixed(2)}<br>z:${vec.z.toFixed(2)}`
+			};
+			
+			// Reference Lines
+			const axisLines = [
+				{ type: 'scatter3d', mode: 'lines', x: [-1,1], y:[0,0], z:[0,0], line: {color:'#ccc', width:2}, showlegend: false },
+				{ type: 'scatter3d', mode: 'lines', x: [0,0], y:[-1,1], z:[0,0], line: {color:'#ccc', width:2}, showlegend: false },
+				{ type: 'scatter3d', mode: 'lines', x: [0,0], y:[0,0], z:[-1,1], line: {color:'#ccc', width:2}, showlegend: false }
+			];
+
+			const layout = {
+				margin: {l:0, r:0, b:0, t:0},
+				showlegend: false,
+				scene: {
+					aspectmode: 'cube',
+					xaxis: {range:[-1,1], showgrid:false, zeroline:false, visible:false},
+					yaxis: {range:[-1,1], showgrid:false, zeroline:false, visible:false},
+					zaxis: {range:[-1,1], showgrid:false, zeroline:false, visible:false},
+					camera: { eye: {x: 1.5, y: 1.5, z: 1.5} }
+				}
+			};
+
+			Plotly.newPlot(`bloch${qubitIndex}`, [sphereData, ...axisLines, arrowData], layout, {displayModeBar: false});
+		}
+
+		// -------------------------------
+		// STANDARD UI LOGIC (Same as before)
+		// -------------------------------
+		let draggedType = null;
+		function initGrid() {
+			const s0 = document.getElementById('slots-0');
+			const s1 = document.getElementById('slots-1');
+			s0.innerHTML = ''; s1.innerHTML = '';
+			for (let c = 0; c < COLUMNS; c++) {
+				s0.appendChild(createSlot(0, c));
+				s1.appendChild(createSlot(1, c));
+			}
+			calculateState();
+		}
+		function createSlot(row, col) {
+			const slot = document.createElement('div');
+			slot.className = 'slot';
+			const val = grid[row][col];
+			if (val) {
+				const el = document.createElement('div');
+				el.draggable = true;
+				el.innerText = (val === 'C')?'●':(val === 'T'?'⊕':val);
+				el.className = `gate ${val === 'C'?'control':(val === 'T'?'target':'')}`;
+				el.onclick = (e) => { e.stopPropagation(); grid[row][col] = null; initGrid(); };
+				slot.appendChild(el);
+			}
+			slot.ondragover = e => { e.preventDefault(); slot.classList.add('drag-over'); };
+			slot.ondragleave = () => slot.classList.remove('drag-over');
+			slot.ondrop = e => { e.preventDefault(); slot.classList.remove('drag-over'); if(draggedType){ grid[row][col]=draggedType; initGrid(); }};
+			return slot;
+		}
+		
+		function renderResults(state) {
+			const c = document.getElementById('bars'); c.innerHTML = '';
+			['|00⟩','|01⟩','|10⟩','|11⟩'].forEach((lbl, i) => {
+				const prob = state[i].magSq();
+				const pct = Math.round(prob * 100);
+				c.innerHTML += `<div class="bar-row"><div class="state-label">${lbl}</div><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div><div class="bar-val">${pct}%</div><div class="complex-val">${state[i].toString()}</div></div>`;
+			});
+		}
+		
+		function resetCircuit() { grid = Array(2).fill(null).map(()=>Array(COLUMNS).fill(null)); initGrid(); }
+		document.querySelectorAll('.palette .gate').forEach(el => el.ondragstart = e => draggedType = e.target.getAttribute('data-type'));
+		
+		// -------------------------------
+		// INITIAL RUN
+		// -------------------------------
+		initGrid();
+	</script>
+</body>
+</html>
