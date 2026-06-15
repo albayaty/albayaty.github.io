@@ -207,7 +207,7 @@
 
 			const label = makeText(axisLabels[i], color = "black");
 			label.position.copy(dir.clone().multiplyScalar(AXIS_LENGTH+210));
-			label.renderOrder = 999;
+			//label.renderOrder = 999;
 			scene.add(label);
 		});
 
@@ -237,7 +237,8 @@
 
 			const mat = new THREE.SpriteMaterial({
 				map:tex,
-				transparent:true
+				transparent:true,
+				depthTest:false
 			});
 
 			const sprite = new THREE.Sprite(mat);
@@ -398,7 +399,7 @@
 				})
 			);
 
-			quintit.renderOrder = 999;
+			//quintit.renderOrder = 999;
 			scene.add(quintit);
 		}
 
@@ -436,7 +437,7 @@
 				opacity:0.10
 			})
 		);
-		sphereWire.renderOrder = -1;
+		//sphereWire.renderOrder = -1;
 		scene.add(sphereWire);
 
 		// -------------------------------------------------------
