@@ -6,7 +6,7 @@
     "email": "albayaty@pdx.edu",
     "phone": "",
     "website": "https://albayaty.github.io",
-    "summary": "Passionate about teaching students, developing innovative curricula, and conducting academic research on quantum gates, circuits, and algorithms, by bridging theoretical foundations in academia with practical applications in industry. My research focuses on geometrically constructing cost-effective quantum operators, enhancing the searching circuitry of Grover’s algorithm and the quantum approximate optimization algorithm (QAOA), and developing generic quantum libraries for lower quantum costs and efficient physical qubits routing (mapping) for the layouts (architectures) of real quantum computers.",
+    "summary": "Passionate about teaching, developing innovative curricula, and conducting academic research on quantum computing and machine learning by bridging theoretical foundations in academia with practical applications in industry. My research focuses on (i) geometrically building cost-effective quantum gates, (ii) effectively enhancing the search circuitry of Grover’s algorithm, QAOA, and BHT-QAOA, and (iii) developing generic quantum libraries for lower quantum costs and efficient physical qubits routing for the restricted layouts of real quantum computers.",
     "location": { "address": "", "postalCode": "97201", "city": "Portland", "countryCode": "USA", "region": "OR" },
     "profiles": [
       { "network": "github", "username": "GitHub", "url": "https://github.com/albayaty" },
