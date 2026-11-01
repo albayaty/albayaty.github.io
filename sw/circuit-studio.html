@@ -1,0 +1,2057 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="author" content="Ali Al-Bayaty">
+    <meta name="DC.creator" content="Ali Al-Bayaty">
+    <meta name="DC.date" content="2026-10-31">
+    <meta name="description" content="Digital Circuits Simulator and HDLs Generator">
+    <meta name="keywords" content="Boolean, logic, digital, gate, circuit, simulator, HDL, VHDL, IEEE 1076-2008, Verilog, SystemVerilog, IEEE 1800-2023, generator, studio">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="https://albayaty.github.io/favicon.ico">
+    <title>Circuit Studio</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            850: '#151e2e',
+                            950: '#0b0f17',
+                        },
+                        accent: {
+                            blue: '#3b82f6',
+                            emerald: '#10b981',
+                            amber: '#f59e0b',
+                            rose: '#f43f5e',
+                            cyan: '#06b6d4',
+                            indigo: '#6366f1'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar and grid styles */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        .canvas-bg {
+            background-color: #0b0f17;
+            background-image: radial-gradient(#1e293b 1.5px, transparent 1.5px);
+            background-size: 24px 24px;
+        }
+
+        .gate-node {
+            user-select: none;
+            transition: box-shadow 0.15s ease, border-color 0.15s ease;
+        }
+
+        .gate-node:hover {
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .gate-node.selected {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5), 0 0 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .pin-terminal {
+            transition: transform 0.15s ease, background-color 0.15s ease;
+        }
+        .pin-terminal:hover {
+            transform: scale(1.4);
+        }
+
+        .wire-path {
+            stroke-linecap: round;
+            transition: stroke 0.2s ease, stroke-width 0.2s ease;
+            cursor: pointer;
+        }
+        .wire-path:hover {
+            stroke-width: 5px !important;
+            filter: drop-shadow(0 0 4px rgba(59,130,246,0.8));
+        }
+
+        .wire-high {
+            stroke: #10b981;
+            filter: drop-shadow(0 0 3px rgba(16,185,129,0.7));
+        }
+        .wire-low {
+            stroke: #475569;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { filter: drop-shadow(0 0 8px rgba(244,63,94,0.9)); }
+            50% { filter: drop-shadow(0 0 18px rgba(244,63,94,1)); }
+        }
+        .led-active {
+            animation: pulse-glow 1.5s infinite ease-in-out;
+        }
+
+        /* Modal glassmorphism */
+        .glass-modal {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased h-screen flex flex-col overflow-hidden select-none">
+
+    <!-- TOP HEADER / TOOLBAR -->
+    <header class="bg-slate-900 border-b border-slate-800 px-4 py-2.5 flex items-center justify-between z-20 shrink-0">
+        <div class="flex items-center space-x-3">
+            <span>
+                <a href="https://albayaty.github.io" title="Ali Al-Bayaty | Professional Portfolio">
+                <i class="bi bi-house-fill" style="font-size: 2rem; color: #6200ea;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-house-fill" viewBox="0 0 16 16">
+				<path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L8 2.207l6.646 6.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293z"/>
+				<path d="m8 3.293 6 6V13.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5V9.293z"/>
+                </svg>
+                </i>
+                </a>
+            </span>
+            <!-- <div class="bg-gradient-to-tr from-indigo-600 to-cyan-500 p-2 rounded-xl shadow-lg shadow-indigo-500/20">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+                </svg>
+            </div> -->
+            <div>
+                <h1 class="font-bold text-base tracking-wide bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+                    Circuit Studio
+                </h1>
+                <p class="text-xs text-slate-400">Digital Circuits Simulator and HDLs Generator</p>
+            </div>
+        </div>
+
+        <!-- Operations Toolbar -->
+        <div class="flex items-center space-x-2">
+            <!-- Run Engine -->
+            <button id="btn-run" onclick="app.runSimulation()" class="flex items-center space-x-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow-md shadow-emerald-900/30 transition-all active:scale-95">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>
+                </svg>
+                <span>Run</span>
+            </button>
+
+            <!-- Reset Circuit -->
+            <button id="btn-reset" onclick="app.resetCircuit()" class="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-medium transition-all active:scale-95">
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                <span>Reset</span>
+            </button>
+
+            <div class="h-5 w-px bg-slate-800 my-auto"></div>
+
+            <!-- Presets Dropdown -->
+            <select id="preset-select" onchange="app.loadPreset(this.value)" class="bg-slate-800 border border-slate-700 text-slate-300 text-xs rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-indigo-500 outline-none">
+                <option value="">Load Preset Circuit...</option>
+                <option value="half_adder">Half Adder (HA)</option>
+                <option value="full_adder">Full Adder (FA)</option>
+                <option value="mux21">2-to-1 Multiplexer (MUX)</option>
+                <option value="xor_nand">XOR Gate from NANDs</option>
+            </select>
+
+            <div class="h-5 w-px bg-slate-800 my-auto"></div>
+
+            <!-- Export JSON -->
+            <button onclick="app.exportJSON()" title="Export Circuit (JSON)" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-lg text-xs font-medium transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+            </button>
+
+            <!-- Import JSON -->
+            <label title="Import Circuit (JSON)" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-lg text-xs font-medium cursor-pointer transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                </svg>
+                <input type="file" id="import-file" accept=".json" class="hidden" onchange="app.importJSON(event)">
+            </label>
+
+            <!-- Generate VHDL -->
+            <button onclick="app.openVHDLModal()" class="flex items-center space-x-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold shadow-md shadow-indigo-900/30 transition-all active:scale-95" title="IEEE 1076-2008 VHDL-2008">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                </svg>
+                <span>Generate VHDL</span>
+            </button>
+
+            <!-- Generate SystemVerilog/Verilog -->
+            <button onclick="app.openVerilogModal()" class="flex items-center space-x-1.5 px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold shadow-md shadow-cyan-900/30 transition-all active:scale-95" title="IEEE 1800-2023 SystemVerilog/Verilog">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                <span>Generate Verilog</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT AREA -->
+    <div class="flex-1 flex overflow-hidden relative">
+
+        <!-- LEFT SIDEBAR: COMPONENTS PANEL (4x3 GRID) -->
+        <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col z-10 shrink-0">
+            <div class="p-3 border-b border-slate-800 flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Components</span>
+                <!-- <span class="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded border border-slate-700">Drag or Click</span> -->
+            </div>
+
+            <!-- 4x3 Grid Container -->
+            <div class="p-3 grid grid-cols-4 gap-2 text-xs">
+                <!-- Row 1 -->
+                <!-- NOT Gate -->
+                <div class="comp-item bg-slate-800 hover:bg-slate-700/80 border border-slate-700 hover:border-indigo-500/50 rounded-lg p-2 flex flex-col items-center justify-center cursor-grab transition-all active:cursor-grabbing hover:shadow-md"
+                     draggable="true" ondragstart="app.handleDragStart(event, 'NOT')" onclick="app.addComponentFromPalette('NOT')">
+                    <svg class="w-7 h-7 text-indigo-400 mb-1" viewBox="0 0 40 30" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="5,5 25,15 5,25" fill="#1e293b"/>
+                        <circle cx="28" cy="15" r="3" fill="#1e293b"/>
+                        <line x1="0" y1="15" x2="5" y2="15"/>
+                        <line x1="31" y1="15" x2="40" y2="15"/>
+                    </svg>
+                    <span class="text-[11px] font-medium text-slate-300">NOT</span>
+                </div>
+
+                <!-- AND Gate -->
+                <div class="comp-item bg-slate-800 hover:bg-slate-700/80 border border-slate-700 hover:border-indigo-500/50 rounded-lg p-2 flex flex-col items-center justify-center cursor-grab transition-all active:cursor-grabbing hover:shadow-md"
+                     draggable="true" ondragstart="app.handleDragStart(event, 'AND')" onclick="app.addComponentFromPalette('AND')">
+                    <svg class="w-7 h-7 text-indigo-400 mb-1" viewBox="0 0 40 30" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M 5,5 L 20,5 A 10,10 0 0,1 20,25 L 5,25 Z" fill="#1e293b"/>
+                        <line x1="0" y1="9" x2="5" y2="9"/>
+                        <line x1="0" y1="21" x2="5" y2="21"/>
+                        <line x1="30" y1="15" x2="40" y2="15"/>
+                    </svg>
+                    <span class="text-[11px] font-medium text-slate-300">AND</span>
+                </div>
+
+                <!-- OR Gate -->
+                <div class="comp-item bg-slate-800 hover:bg-slate-700/80 border border-slate-700 hover:border-indigo-500/50 rounded-lg p-2 flex flex-col items-center justify-center cursor-grab transition-all active:cursor-grabbing hover:shadow-md"
+                     draggable="true" ondragstart="app.handleDragStart(event, 'OR')" onclick="app.addComponentFromPalette('OR')">
+                    <svg class="w-7 h-7 text-indigo-400 mb-1" viewBox="0 0 40 30" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M 5,5 Q 15,15 5,25 Q 22,25 30,15 Q 22,5 5,5 Z" fill="#1e293b"/>
+                        <line x1="0" y1="9" x2="8" y2="9"/>
+                        <line x1="0" y1="21" x2="8" y2="21"/>
+                        <line x1="30" y1="15" x2="40" y2="15"/>
+                    </svg>
+                    <span class="text-[11px] font-medium text-slate-300">OR</span>
+                </div>
+
+                <!-- XOR Gate -->
+                <div class="comp-item bg-slate-800 hover:bg-slate-700/80 border border-slate-700 hover:border-indigo-500/50 rounded-lg p-2 flex flex-col items-center justify-center cursor-grab transition-all active:cursor-grabbing hover:shadow-md"
+                     draggable="true" ondragstart="app.handleDragStart(event, 'XOR')" onclick="app.addComponentFromPalette('XOR')">
+                    <svg class="w-7 h-7 text-indigo-400 mb-1" viewBox="0 0 40 30" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M 2,5 Q 12,15 2,25" fill="none"/>
+                        <path d="M 7,5 Q 17,15 7,25 Q 24,25 32,15 Q 24,5 7,5 Z" fill="#1e293b"/>
+                        <line x1="0" y1="9" x2="7" y2="9"/>
+                        <line x1="0" y1="21" x2="7" y2="21"/>
+                        <line x1="32" y1="15" x2="40" y2="15"/>
+                    </svg>
+                    <span class="text-[11px] font-medium text-slate-300">XOR</span>
+                </div>
+
+                <!-- Row 2 -->
+                <!-- Text Label Component -->
+                <div class="comp-item bg-slate-800 hover:bg-slate-700/80 border border-slate-700 hover:border-amber-500/50 rounded-lg p-2 flex flex-col items-center justify-center cursor-grab transition-all active:cursor-grabbing hover:shadow-md"
+                     draggable="true" ondragstart="app.handleDragStart(event, 'LABEL')" onclick="app.addComponentFromPalette('LABEL')">
+                    <span class="text-sm font-serif font-bold text-amber-400 mb-1">Txt</span>
+                    <span class="text-[11px] font-medium text-slate-300">Label</span>
+                </div>
+
+                <!-- NAND Gate -->
+                <div class="comp-item bg-slate-800 hover:bg-slate-700/80 border border-slate-700 hover:border-indigo-500/50 rounded-lg p-2 flex flex-col items-center justify-center cursor-grab transition-all active:cursor-grabbing hover:shadow-md"
+                     draggable="true" ondragstart="app.handleDragStart(event, 'NAND')" onclick="app.addComponentFromPalette('NAND')">
+                    <svg class="w-7 h-7 text-indigo-400 mb-1" viewBox="0 0 40 30" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M 5,5 L 18,5 A 10,10 0 0,1 18,25 L 5,25 Z" fill="#1e293b"/>
+                        <circle cx="30" cy="15" r="2.5" fill="#1e293b"/>
+                        <line x1="0" y1="9" x2="5" y2="9"/>
+                        <line x1="0" y1="21" x2="5" y2="21"/>
+                        <line x1="32.5" y1="15" x2="40" y2="15"/>
+                    </svg>
+                    <span class="text-[11px] font-medium text-slate-300">NAND</span>
+                </div>
+
+                <!-- NOR Gate -->
+                <div class="comp-item bg-slate-800 hover:bg-slate-700/80 border border-slate-700 hover:border-indigo-500/50 rounded-lg p-2 flex flex-col items-center justify-center cursor-grab transition-all active:cursor-grabbing hover:shadow-md"
+                     draggable="true" ondragstart="app.handleDragStart(event, 'NOR')" onclick="app.addComponentFromPalette('NOR')">
+                    <svg class="w-7 h-7 text-indigo-400 mb-1" viewBox="0 0 40 30" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M 5,5 Q 15,15 5,25 Q 20,25 27,15 Q 20,5 5,5 Z" fill="#1e293b"/>
+                        <circle cx="29.5" cy="15" r="2.5" fill="#1e293b"/>
+                        <line x1="0" y1="9" x2="8" y2="9"/>
+                        <line x1="0" y1="21" x2="8" y2="21"/>
+                        <line x1="32" y1="15" x2="40" y2="15"/>
+                    </svg>
+                    <span class="text-[11px] font-medium text-slate-300">NOR</span>
+                </div>
+
+                <!-- XNOR Gate -->
+                <div class="comp-item bg-slate-800 hover:bg-slate-700/80 border border-slate-700 hover:border-indigo-500/50 rounded-lg p-2 flex flex-col items-center justify-center cursor-grab transition-all active:cursor-grabbing hover:shadow-md"
+                     draggable="true" ondragstart="app.handleDragStart(event, 'XNOR')" onclick="app.addComponentFromPalette('XNOR')">
+                    <svg class="w-7 h-7 text-indigo-400 mb-1" viewBox="0 0 40 30" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M 2,5 Q 12,15 2,25" fill="none"/>
+                        <path d="M 6,5 Q 16,15 6,25 Q 21,25 28,15 Q 21,5 6,5 Z" fill="#1e293b"/>
+                        <circle cx="30.5" cy="15" r="2.5" fill="#1e293b"/>
+                        <line x1="0" y1="9" x2="6" y2="9"/>
+                        <line x1="0" y1="21" x2="6" y2="21"/>
+                        <line x1="33" y1="15" x2="40" y2="15"/>
+                    </svg>
+                    <span class="text-[11px] font-medium text-slate-300">XNOR</span>
+                </div>
+
+                <!-- Row 3 -->
+                <!-- Switch Component -->
+                <div class="comp-item bg-slate-800 hover:bg-slate-700/80 border border-slate-700 hover:border-emerald-500/50 rounded-lg p-2 flex flex-col items-center justify-center cursor-grab transition-all active:cursor-grabbing hover:shadow-md"
+                     draggable="true" ondragstart="app.handleDragStart(event, 'SWITCH')" onclick="app.addComponentFromPalette('SWITCH')">
+                    <div class="w-7 h-5 rounded-full bg-slate-900 border border-emerald-500 p-0.5 flex items-center mb-1">
+                        <div class="w-3 h-3 rounded-full bg-emerald-500 shadow-sm"></div>
+                    </div>
+                    <span class="text-[11px] font-medium text-slate-300">Switch</span>
+                </div>
+
+                <!-- LED Component -->
+                <div class="comp-item bg-slate-800 hover:bg-slate-700/80 border border-slate-700 hover:border-rose-500/50 rounded-lg p-2 flex flex-col items-center justify-center cursor-grab transition-all active:cursor-grabbing hover:shadow-md"
+                     draggable="true" ondragstart="app.handleDragStart(event, 'LED')" onclick="app.addComponentFromPalette('LED')">
+                    <div class="w-5 h-5 rounded-full bg-rose-950 border border-rose-500 flex items-center justify-center shadow-inner mb-1">
+                        <div class="w-2.5 h-2.5 rounded-full bg-rose-600"></div>
+                    </div>
+                    <span class="text-[11px] font-medium text-slate-300">LED</span>
+                </div>
+
+                <!-- Auxiliary Slot 1: VCC / High -->
+                <div class="comp-item bg-slate-800/50 border border-slate-800 rounded-lg p-2 flex flex-col items-center justify-center text-slate-600 opacity-0">
+                    <span class="text-xs font-mono font-bold">1</span>
+                    <span class="text-[10px]">High</span>
+                </div>
+
+                <!-- Auxiliary Slot 2: GND / Low -->
+                <div class="comp-item bg-slate-800/50 border border-slate-800 rounded-lg p-2 flex flex-col items-center justify-center text-slate-600 opacity-0">
+                    <span class="text-xs font-mono font-bold">0</span>
+                    <span class="text-[10px]">Low</span>
+                </div>
+            </div>
+
+            <!-- Palette Instructions & Controls -->
+            <div class="mt-auto p-3 border-t border-slate-800 text-xs text-slate-400 space-y-2">
+                <div class="flex items-center justify-between text-[15px]">
+                    <span class="font-medium text-slate-300">Live Simulation</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="live-toggle" class="sr-only peer" checked onchange="app.toggleLiveSim(this.checked)">
+                        <div class="w-8 h-4 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-indigo-600"></div>
+                    </label>
+                </div>
+                <p class="text-[14px] leading-relaxed text-slate-500">
+                    <b>Instructions:</b><br>
+                    • Drag and drop to build a digital circuit.<br>
+                    • Click 'Out' and drag to 'In' to connect.<br>
+                    • DblClick Label, Switch, and LED to rename.<br>
+                    • DblClick wires (signals) to delete.<br>
+                    • Select and press <kbd class="px-1 bg-slate-800 rounded text-slate-300">Del</kbd> to remove.
+                </p>
+                <div class="flex items-center justify-between text-[11px]">
+                    <p style="font-size: 0.75rem; margin: 0 0 8px 0; color: #94a3b8;">&copy; 2026 Ali Al-Bayaty • All Rights Reserved</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- CENTER AREA: DIGITAL CIRCUIT CANVAS -->
+        <main class="flex-1 flex flex-col overflow-hidden relative">
+
+            <!-- Canvas Header Toolbar -->
+            <div class="bg-slate-900/80 backdrop-blur border-b border-slate-800 px-4 py-1.5 flex items-center justify-between text-xs text-slate-400 z-10">
+                <div class="flex items-center space-x-2">
+                    <span class="font-semibold text-slate-200">Digital Circuit</span>
+                    <span id="circuit-status-badge" class="bg-emerald-950 text-emerald-400 border border-emerald-800/50 px-2 py-0.5 rounded text-[10px]">Ready</span>
+                </div>
+                <!-- <div class="flex items-center space-x-3">
+                    <button onclick="app.clearSelected()" title="Clear Selection" class="hover:text-slate-200">Deselect All</button>
+                    <button onclick="app.deleteSelected()" title="Delete Selected" class="hover:text-rose-400 text-slate-400">
+                        Delete Selected
+                    </button>
+                </div> -->
+            </div>
+
+            <!-- Canvas Drag & Drop Workspace -->
+            <div id="canvas-container" class="flex-1 canvas-bg relative overflow-hidden"
+                 ondragover="app.handleDragOver(event)" ondrop="app.handleDrop(event)"
+                 onclick="app.handleCanvasClick(event)">
+
+                <!-- Interactive SVG Wiring Overlay -->
+                <svg id="svg-wires" class="absolute inset-0 w-full h-full pointer-events-none z-0">
+                    <defs>
+                        <linearGradient id="wireGradientHigh" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#10b981" />
+                            <stop offset="100%" stop-color="#34d399" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Wires rendered dynamically here -->
+                </svg>
+
+                <!-- Components Layer -->
+                <div id="components-layer" class="absolute inset-0 pointer-events-none z-10">
+                    <!-- Gate DOM Nodes inserted dynamically -->
+                </div>
+            </div>
+
+            <!-- BOTTOM PANELS: EQUATION, TRUTH TABLE, WAVEFORMS -->
+            <div class="h-64 bg-slate-900 border-t border-slate-800 flex flex-col shrink-0 z-10">
+                <!-- Tab Header Navigation -->
+                <div class="flex items-center bg-slate-950/60 border-b border-slate-800 px-3">
+                    <button id="tab-btn-eq" onclick="app.switchTab('eq')" class="px-4 py-2 text-xs font-semibold border-b-2 border-indigo-500 text-indigo-400 flex items-center space-x-1.5 transition-all">
+                        <span>Boolean Equations</span>
+                    </button>
+                    <button id="tab-btn-tt" onclick="app.switchTab('tt')" class="px-4 py-2 text-xs font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-1.5 transition-all">
+                        <span>Truth Table</span>
+                        <span id="tt-count-badge" class="bg-slate-800 text-slate-300 text-[10px] px-1.5 py-0.2 rounded-full border border-slate-700">0</span>
+                    </button>
+                    <button id="tab-btn-wf" onclick="app.switchTab('wf')" class="px-4 py-2 text-xs font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-1.5 transition-all">
+                        <span>Waveforms</span>
+                    </button>
+                </div>
+
+                <!-- Tab Panels Body -->
+                <div class="flex-1 overflow-auto p-4 bg-slate-900">
+
+                    <!-- TAB 1: BOOLEAN EQUATION PANEL -->
+                    <div id="tab-content-eq" class="h-full flex flex-col">
+                        <div class="text-xs text-slate-400 mb-2 flex justify-between items-center">
+                            <span>Symbolic Output Equations:</span>
+                            <span class="text-[15px] text-slate-500">Evaluated from LEDs (outputs) backwards to Switches (inputs)</span>
+                        </div>
+                        <div id="equation-container" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-3 font-mono text-xs text-cyan-300 overflow-auto flex flex-col space-y-2">
+                            <div class="text-slate-500 italic">No LEDs connected. Connect components and click 'Run'.</div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 2: TRUTH TABLE PANEL -->
+                    <div id="tab-content-tt" class="h-full hidden flex flex-col">
+                        <div class="overflow-auto border border-slate-800 rounded-xl max-h-full">
+                            <table id="truth-table" class="w-full text-left border-collapse text-xs">
+                                <thead>
+                                    <tr id="tt-header" class="bg-slate-950 text-slate-300 font-mono sticky top-0 border-b border-slate-800">
+                                        <th class="p-2 border-r border-slate-800">Inputs / Outputs</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tt-body" class="font-mono divide-y divide-slate-800/50 text-slate-300">
+                                    <tr>
+                                        <td class="p-2 text-slate-500 italic">'Run' to populate this truth table.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- TAB 3: WAVEFORMS PANEL -->
+                    <div id="tab-content-wf" class="h-full hidden flex flex-col">
+                        <div class="text-xs text-slate-400 mb-2 flex justify-between items-center">
+                            <span>Timing Waveform Diagram:</span>
+                            <span class="text-[15px] text-slate-500">Shows logic levels over time transitions</span>
+                        </div>
+                        <div class="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-2 overflow-auto relative flex items-center justify-center">
+                            <canvas id="waveform-canvas" class="w-full h-full block"></canvas>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- VHDL MODAL -->
+    <div id="vhdl-modal" class="fixed inset-0 glass-modal z-50 flex items-center justify-center hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-11/12 max-w-4xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+            <!-- Modal Header -->
+            <div class="px-5 py-3.5 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                    </svg>
+                    <h3 class="font-bold text-sm text-slate-100">IEEE 1076-2008 VHDL Code Generator</h3>
+                </div>
+                <button onclick="app.closeVHDLModal()" class="text-slate-400 hover:text-white p-1">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- File Navigation Tabs -->
+            <div class="bg-slate-950 px-4 pt-2 border-b border-slate-800 flex space-x-2 text-xs font-mono">
+                <button id="vhdl-tab-design" onclick="app.switchVHDLTab('design')" class="px-3 py-1.5 rounded-t-lg bg-slate-900 text-indigo-400 border-t border-x border-slate-800 font-semibold">
+                    design.vhd
+                </button>
+                <button id="vhdl-tab-tb" onclick="app.switchVHDLTab('tb')" class="px-3 py-1.5 rounded-t-lg bg-slate-950 text-slate-400 hover:text-slate-200 font-semibold">
+                    testbench.vhd
+                </button>
+            </div>
+
+            <!-- Code Editor Box -->
+            <div class="flex-1 bg-slate-950 p-4 overflow-auto font-mono text-xs text-slate-200 leading-relaxed relative">
+                <pre id="vhdl-code-block" class="whitespace-pre"></pre>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-5 py-3 border-t border-slate-800 bg-slate-900 flex items-center justify-between">
+                <span class="text-xs text-slate-500">IEEE VHDL-2008 Standard Compliant Synthesis Output</span>
+                <div class="flex items-center space-x-2">
+                    <button onclick="app.copyVHDLCode()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-medium flex items-center space-x-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/>
+                        </svg>
+                        <span>Copy Code</span>
+                    </button>
+                    <button onclick="app.downloadVHDLFile()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold flex items-center space-x-1 shadow">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        <span>Download .vhd</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VERILOG MODAL -->
+    <div id="verilog-modal" class="fixed inset-0 glass-modal z-50 flex items-center justify-center hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-11/12 max-w-4xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+            <!-- Modal Header -->
+            <div class="px-5 py-3.5 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <h3 class="font-bold text-sm text-slate-100">IEEE 1800-2023 SystemVerilog/Verilog Code Generator</h3>
+                </div>
+                <button onclick="app.closeVerilogModal()" class="text-slate-400 hover:text-white p-1">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- File Navigation Tabs -->
+            <div class="bg-slate-950 px-4 pt-2 border-b border-slate-800 flex space-x-2 text-xs font-mono">
+                <button id="verilog-tab-design" onclick="app.switchVerilogTab('design')" class="px-3 py-1.5 rounded-t-lg bg-slate-900 text-cyan-400 border-t border-x border-slate-800 font-semibold">
+                    design.v
+                </button>
+                <button id="verilog-tab-tb" onclick="app.switchVerilogTab('tb')" class="px-3 py-1.5 rounded-t-lg bg-slate-950 text-slate-400 hover:text-slate-200 font-semibold">
+                    testbench.v
+                </button>
+            </div>
+
+            <!-- Code Editor Box -->
+            <div class="flex-1 bg-slate-950 p-4 overflow-auto font-mono text-xs text-slate-200 leading-relaxed relative">
+                <pre id="verilog-code-block" class="whitespace-pre"></pre>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-5 py-3 border-t border-slate-800 bg-slate-900 flex items-center justify-between">
+                <span class="text-xs text-slate-500">IEEE 1800-2023 SystemVerilog/Verilog Standard Compliant Synthesis Output</span>
+                <div class="flex items-center space-x-2">
+                    <button onclick="app.copyVerilogCode()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-medium flex items-center space-x-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/>
+                        </svg>
+                        <span>Copy Code</span>
+                    </button>
+                    <button onclick="app.downloadVerilogFile()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold flex items-center space-x-1 shadow">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        <span>Download .v</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN JAVASCRIPT ENGINE -->
+    <script>
+        /**
+         * LogicLab Studio - Core Simulator Architecture
+         * Class-based state management, topological logic evaluator, symbolic expression builder,
+         * truth table generator, timing waveform renderer, and VHDL code generator.
+         */
+        class LogicSimulator {
+            constructor() {
+                this.components = [];
+                this.wires = [];
+                this.selectedComponent = null;
+                this.selectedWire = null;
+                this.activeWireDrag = null; // { fromCompId, fromPinIdx, mouseX, mouseY }
+                this.liveSimulation = true;
+                this.activeTab = 'eq';
+                this.activeVHDLTab = 'design';
+                this.vhdlDesignCode = '';
+                this.vhdlTbCode = '';
+
+                this.activeVerilogTab = 'design';
+                this.verilogDesignCode = '';
+                this.verilogTbCode = '';
+
+                // Gate Type Definitions
+                this.gateMeta = {
+                    'NOT': { name: 'NOT Gate', inPins: 1, outPins: 1, symbol: 'NOT' },
+                    'AND': { name: 'AND Gate', inPins: 2, outPins: 1, symbol: 'AND' },
+                    'NAND': { name: 'NAND Gate', inPins: 2, outPins: 1, symbol: 'NAND' },
+                    'OR': { name: 'OR Gate', inPins: 2, outPins: 1, symbol: 'OR' },
+                    'NOR': { name: 'NOR Gate', inPins: 2, outPins: 1, symbol: 'NOR' },
+                    'XOR': { name: 'XOR Gate', inPins: 2, outPins: 1, symbol: 'XOR' },
+                    'XNOR': { name: 'XNOR Gate', inPins: 2, outPins: 1, symbol: 'XNOR' },
+                    'SWITCH': { name: 'Switch Input', inPins: 0, outPins: 1, symbol: 'SW' },
+                    'LED': { name: 'LED Output', inPins: 1, outPins: 0, symbol: 'LED' },
+                    'LABEL': { name: 'Text Label', inPins: 0, outPins: 0, symbol: 'TXT' }
+                };
+
+                this.initListeners();
+            }
+
+            initListeners() {
+                window.addEventListener('resize', () => this.drawWaveforms());
+                window.addEventListener('keydown', (e) => {
+                    if (e.key === 'Delete' || e.key === 'Backspace') {
+                        // Prevent deletion if editing text input
+                        if (document.activeElement.tagName === 'INPUT') return;
+                        this.deleteSelected();
+                    }
+                });
+
+                // Global mouse move for active wiring
+                const canvas = document.getElementById('canvas-container');
+                canvas.addEventListener('mousemove', (e) => {
+                    if (this.activeWireDrag) {
+                        const rect = canvas.getBoundingClientRect();
+                        this.activeWireDrag.mouseX = e.clientX - rect.left;
+                        this.activeWireDrag.mouseY = e.clientY - rect.top;
+                        this.renderWires();
+                    }
+                });
+            }
+
+            // --- COMPONENT MANAGEMENT ---
+            addComponent(type, x, y, customLabel = null) {
+                const meta = this.gateMeta[type];
+                if (!meta) return;
+
+                const id = 'comp_' + Math.random().toString(36).substr(2, 9);
+                
+                // Auto label generation
+                let label = customLabel;
+                if (!label) {
+                    const count = this.components.filter(c => c.type === type).length + 1;
+                    label = type === 'SWITCH' ? `IN_${count}` :
+                            type === 'LED' ? `OUT_${count}` :
+                            type === 'LABEL' ? `Signal ${count}` :
+                            `${type}_${count}`;
+                }
+
+                const comp = {
+                    id,
+                    type,
+                    x: Math.max(20, x),
+                    y: Math.max(20, y),
+                    label,
+                    state: 0, // for SWITCH state or internal output
+                    inputs: Array(meta.inPins).fill(0),
+                    outputs: Array(meta.outPins).fill(0)
+                };
+
+                this.components.push(comp);
+                this.renderComponentDOM(comp);
+                if (this.liveSimulation) this.runSimulation();
+                return comp;
+            }
+
+            renderComponentDOM(comp) {
+                const container = document.getElementById('components-layer');
+                const el = document.createElement('div');
+                el.id = comp.id;
+                el.className = `gate-node absolute border rounded-xl bg-slate-900/90 shadow-xl pointer-events-auto cursor-move flex flex-col justify-between p-2 min-w-[110px] border-slate-700 text-slate-200`;
+                el.style.left = `${comp.x}px`;
+                el.style.top = `${comp.y}px`;
+
+                // Dragging logic
+                let isDragging = false;
+                let startX, startY, origX, origY;
+
+                el.addEventListener('mousedown', (e) => {
+                    if (e.target.classList.contains('pin-terminal') || e.target.tagName === 'INPUT') return;
+                    isDragging = true;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    origX = comp.x;
+                    origY = comp.y;
+                    this.selectComponent(comp.id);
+                    e.stopPropagation();
+                });
+
+                window.addEventListener('mousemove', (e) => {
+                    if (!isDragging) return;
+                    const dx = e.clientX - startX;
+                    const dy = e.clientY - startY;
+                    comp.x = Math.max(0, origX + dx);
+                    comp.y = Math.max(0, origY + dy);
+                    el.style.left = `${comp.x}px`;
+                    el.style.top = `${comp.y}px`;
+                    this.renderWires();
+                });
+
+                window.addEventListener('mouseup', () => { isDragging = false; });
+
+                // Attach double click listener directly to component node for Switch and LED components
+                el.addEventListener('dblclick', (e) => {
+                    e.stopPropagation();
+                    if (comp.type === 'SWITCH' || comp.type === 'LED' || comp.type === 'LABEL') {
+                        this.editLabel(comp.id);
+                    }
+                });
+
+                // Construct component internal HTML
+                this.updateComponentHTML(el, comp);
+                container.appendChild(el);
+            }
+
+            updateComponentHTML(el, comp) {
+                const meta = this.gateMeta[comp.type];
+
+                if (comp.type === 'LABEL') {
+                    el.className = `gate-node absolute border border-amber-500/30 rounded-lg bg-amber-950/20 shadow-md p-2 pointer-events-auto cursor-move text-amber-300 font-serif font-semibold`;
+                    el.innerHTML = `
+                        <div class="flex items-center space-x-1">
+                            <span ondoubleclick="app.editLabel('${comp.id}')" class="hover:underline cursor-pointer text-xs">${comp.label}</span>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let inPinsHTML = '';
+                for (let i = 0; i < meta.inPins; i++) {
+                    inPinsHTML += `
+                        <div class="flex items-center space-x-1 my-1">
+                            <div class="pin-terminal w-3 h-3 rounded-full bg-slate-700 border-2 border-slate-400 hover:border-indigo-400 cursor-pointer"
+                                 data-comp="${comp.id}" data-pin-type="in" data-pin-idx="${i}"
+                                 onclick="app.handlePinClick(event, '${comp.id}', 'in', ${i})"
+                                 ondoubleclick="app.editPinLabel('${comp.id}', 'in', ${i})"
+                                 title="Input Pin ${i + 1}"></div>
+                            <span class="text-[9px] text-slate-400 font-mono">In${meta.inPins > 1 ? i + 1 : ''}</span>
+                        </div>
+                    `;
+                }
+
+                let outPinsHTML = '';
+                for (let i = 0; i < meta.outPins; i++) {
+                    outPinsHTML += `
+                        <div class="flex items-center space-x-1 my-1">
+                            <span class="text-[9px] text-slate-400 font-mono">Out</span>
+                            <div class="pin-terminal w-3 h-3 rounded-full bg-slate-700 border-2 border-slate-400 hover:border-emerald-400 cursor-pointer"
+                                 data-comp="${comp.id}" data-pin-type="out" data-pin-idx="${i}"
+                                 onclick="app.handlePinClick(event, '${comp.id}', 'out', ${i})"
+                                 ondoubleclick="app.editPinLabel('${comp.id}', 'out', ${i})"
+                                 title="Output Pin"></div>
+                        </div>
+                    `;
+                }
+
+                // Switch specific UI
+                let compBody = '';
+                if (comp.type === 'SWITCH') {
+                    compBody = `
+                        <button onclick="app.toggleSwitch('${comp.id}')" class="px-2.5 py-1 rounded-md text-xs font-mono font-bold transition-all ${comp.state ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/50' : 'bg-slate-800 text-slate-400 border border-slate-700'}">
+                            ${comp.state ? 'LOGIC 1' : 'LOGIC 0'}
+                        </button>
+                    `;
+                } else if (comp.type === 'LED') {
+                    const active = comp.inputs[0] === 1;
+                    compBody = `
+                        <div class="w-8 h-8 rounded-full border-2 border-slate-700 ${active ? 'bg-rose-600 border-rose-400 shadow-lg shadow-rose-600/80 led-active' : 'bg-slate-950'} flex items-center justify-center transition-all">
+                            <div class="w-3 h-3 rounded-full ${active ? 'bg-white' : 'bg-slate-800'}"></div>
+                        </div>
+                    `;
+                } else {
+                    compBody = `<span class="font-bold text-xs tracking-wider text-indigo-300 font-mono">${comp.type}</span>`;
+                }
+
+                el.innerHTML = `
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-1 mb-1 text-[10px]">
+                        <span ondoubleclick="app.editLabel('${comp.id}')" class="font-semibold text-slate-300 hover:text-white cursor-pointer truncate max-w-[80px]" title="Double click to rename">${comp.label}</span>
+                    </div>
+                    <div class="flex items-center justify-between space-x-2">
+                        <div class="flex flex-col">${inPinsHTML}</div>
+                        <div class="my-auto px-1 flex flex-col items-center">${compBody}</div>
+                        <div class="flex flex-col">${outPinsHTML}</div>
+                    </div>
+                `;
+            }
+
+            toggleSwitch(compId) {
+                const comp = this.components.find(c => c.id === compId);
+                if (comp && comp.type === 'SWITCH') {
+                    comp.state = comp.state === 1 ? 0 : 1;
+                    comp.outputs[0] = comp.state;
+                    const el = document.getElementById(compId);
+                    if (el) this.updateComponentHTML(el, comp);
+                    if (this.liveSimulation) this.runSimulation();
+                }
+            }
+
+            editLabel(compId) {
+                const comp = this.components.find(c => c.id === compId);
+                if (!comp) return;
+
+                // Restrict label editing specifically to Switch, LED, and Label components
+                if (comp.type !== 'SWITCH' && comp.type !== 'LED' && comp.type !== 'LABEL') {
+                    return;
+                }
+
+                const targetType = comp.type === 'SWITCH' ? 'Input Switch Signal' :
+                                   comp.type === 'LED' ? 'Output LED Signal' :
+                                   comp.type === 'LABEL' ? 'Canvas Text Label' : 'Signal';
+
+                const newLabel = prompt(`Enter new label text for ${targetType}:`, comp.label);
+                if (newLabel !== null && newLabel.trim() !== "") {
+                    // Sanitize label string into a valid signal identifier
+                    comp.label = newLabel.trim().replace(/\s+/g, '_');
+                    const el = document.getElementById(compId);
+                    if (el) this.updateComponentHTML(el, comp);
+                    
+                    // Instantly re-evaluate simulation & refresh Equations, Truth Table, Waveforms, and VHDL
+                    this.runSimulation();
+                }
+            }
+
+            editPinLabel(compId, pinType, pinIdx) {
+                const comp = this.components.find(c => c.id === compId);
+                if (comp && (comp.type === 'SWITCH' || comp.type === 'LED' || comp.type === 'LABEL')) {
+                    this.editLabel(compId);
+                }
+            }
+
+            // --- PIN CLICK & WIRING ---
+            handlePinClick(e, compId, pinType, pinIdx) {
+                e.stopPropagation();
+                if (!this.activeWireDrag) {
+                    if (pinType === 'out') {
+                        // Start wire from Output pin
+                        const canvasRect = document.getElementById('canvas-container').getBoundingClientRect();
+                        this.activeWireDrag = {
+                            fromCompId: compId,
+                            fromPinIdx: pinIdx,
+                            mouseX: e.clientX - canvasRect.left,
+                            mouseY: e.clientY - canvasRect.top
+                        };
+                        this.renderWires();
+                    }
+                } else {
+                    // Anchor wire to Input pin
+                    if (pinType === 'in' && compId !== this.activeWireDrag.fromCompId) {
+                        // Remove any existing wire targeting this same input pin (single input connection)
+                        this.wires = this.wires.filter(w => !(w.toCompId === compId && w.toPinIdx === pinIdx));
+
+                        this.wires.push({
+                            id: 'wire_' + Math.random().toString(36).substr(2, 9),
+                            fromCompId: this.activeWireDrag.fromCompId,
+                            fromPinIdx: this.activeWireDrag.fromPinIdx,
+                            toCompId: compId,
+                            toPinIdx: pinIdx,
+                            value: 0
+                        });
+
+                        this.activeWireDrag = null;
+                        this.renderWires();
+                        if (this.liveSimulation) this.runSimulation();
+                    } else {
+                        // Cancel wire creation
+                        this.activeWireDrag = null;
+                        this.renderWires();
+                    }
+                }
+            }
+
+            renderWires() {
+                const svg = document.getElementById('svg-wires');
+                const canvasRect = document.getElementById('canvas-container').getBoundingClientRect();
+                let html = `
+                    <defs>
+                        <linearGradient id="wireGradientHigh" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#10b981" />
+                            <stop offset="100%" stop-color="#34d399" />
+                        </linearGradient>
+                    </defs>
+                `;
+
+                // Render finalized wires
+                this.wires.forEach(w => {
+                    const fromPinEl = document.querySelector(`[data-comp="${w.fromCompId}"][data-pin-type="out"][data-pin-idx="${w.fromPinIdx}"]`);
+                    const toPinEl = document.querySelector(`[data-comp="${w.toCompId}"][data-pin-type="in"][data-pin-idx="${w.toPinIdx}"]`);
+
+                    if (fromPinEl && toPinEl) {
+                        const r1 = fromPinEl.getBoundingClientRect();
+                        const r2 = toPinEl.getBoundingClientRect();
+
+                        const x1 = r1.left + r1.width / 2 - canvasRect.left;
+                        const y1 = r1.top + r1.height / 2 - canvasRect.top;
+                        const x2 = r2.left + r2.width / 2 - canvasRect.left;
+                        const y2 = r2.top + r2.height / 2 - canvasRect.top;
+
+                        const dx = Math.abs(x2 - x1) * 0.5;
+                        const pathData = `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
+
+                        const isHigh = w.value === 1;
+                        const strokeClass = isHigh ? 'wire-high' : 'wire-low';
+                        const strokeColor = isHigh ? '#10b981' : '#475569';
+                        const isSelected = this.selectedWire === w.id;
+
+                        html += `
+                            <g class="cursor-pointer" pointer-events="stroke" onclick="app.selectWire('${w.id}')" ondblclick="app.deleteWire(event, '${w.id}')">
+                                <!-- Expanded hit area for easier clicking/double-clicking -->
+                                <path d="${pathData}" fill="none" stroke="transparent" stroke-width="12" pointer-events="stroke" />
+                                <!-- Visible Wire Path -->
+                                <path d="${pathData}" fill="none" stroke="${isSelected ? '#3b82f6' : strokeColor}" stroke-width="${isSelected ? '4' : '3'}"
+                                      class="wire-path ${strokeClass}"
+                                      title="Wire (Double-click to delete)">
+                                </path>
+                            </g>
+                        `;
+                    }
+                });
+
+                // Render active rubberband wire drag
+                if (this.activeWireDrag) {
+                    const fromPinEl = document.querySelector(`[data-comp="${this.activeWireDrag.fromCompId}"][data-pin-type="out"][data-pin-idx="${this.activeWireDrag.fromPinIdx}"]`);
+                    if (fromPinEl) {
+                        const r1 = fromPinEl.getBoundingClientRect();
+                        const x1 = r1.left + r1.width / 2 - canvasRect.left;
+                        const y1 = r1.top + r1.height / 2 - canvasRect.top;
+                        const x2 = this.activeWireDrag.mouseX;
+                        const y2 = this.activeWireDrag.mouseY;
+
+                        const dx = Math.abs(x2 - x1) * 0.5;
+                        const pathData = `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
+
+                        html += `
+                            <path d="${pathData}" fill="none" stroke="#6366f1" stroke-width="3" stroke-dasharray="6,6" class="animate-pulse">
+                            </path>
+                        `;
+                    }
+                }
+
+                svg.innerHTML = html;
+            }
+
+            // --- SELECTION & DELETION ---
+            selectComponent(id) {
+                this.clearSelected();
+                this.selectedComponent = id;
+                const el = document.getElementById(id);
+                if (el) el.classList.add('selected');
+            }
+
+            selectWire(id) {
+                this.clearSelected();
+                this.selectedWire = id;
+                this.renderWires();
+            }
+
+            deleteWire(e, wireId) {
+                if (e) e.stopPropagation();
+                this.wires = this.wires.filter(w => w.id !== wireId);
+                if (this.selectedWire === wireId) {
+                    this.selectedWire = null;
+                }
+                this.renderWires();
+                if (this.liveSimulation) this.runSimulation();
+            }
+
+            clearSelected() {
+                if (this.selectedComponent) {
+                    const el = document.getElementById(this.selectedComponent);
+                    if (el) el.classList.remove('selected');
+                    this.selectedComponent = null;
+                }
+                this.selectedWire = null;
+            }
+
+            deleteSelected() {
+                if (this.selectedComponent) {
+                    const id = this.selectedComponent;
+                    this.components = this.components.filter(c => c.id !== id);
+                    this.wires = this.wires.filter(w => w.fromCompId !== id && w.toCompId !== id);
+                    const el = document.getElementById(id);
+                    if (el) el.remove();
+                    this.selectedComponent = null;
+                    this.renderWires();
+                    if (this.liveSimulation) this.runSimulation();
+                } else if (this.selectedWire) {
+                    this.wires = this.wires.filter(w => w.id !== this.selectedWire);
+                    this.selectedWire = null;
+                    this.renderWires();
+                    if (this.liveSimulation) this.runSimulation();
+                }
+            }
+
+            // --- SIMULATION & LOGIC EVALUATION ENGINE ---
+            runSimulation() {
+                // Reset inputs for components
+                this.components.forEach(c => {
+                    c.inputs.fill(0);
+                    if (c.type === 'SWITCH') c.outputs[0] = c.state;
+                });
+
+                // Topological / Iterative Logic Propagation
+                let changed = true;
+                let iterations = 0;
+                const maxIterations = 50; // Guard against feedback oscillation loops
+
+                while (changed && iterations < maxIterations) {
+                    changed = false;
+                    iterations++;
+
+                    // Propagate values over wires
+                    this.wires.forEach(w => {
+                        const src = this.components.find(c => c.id === w.fromCompId);
+                        const dst = this.components.find(c => c.id === w.toCompId);
+                        if (src && dst) {
+                            const val = src.outputs[w.fromPinIdx] || 0;
+                            w.value = val;
+                            if (dst.inputs[w.toPinIdx] !== val) {
+                                dst.inputs[w.toPinIdx] = val;
+                                changed = true;
+                            }
+                        }
+                    });
+
+                    // Evaluate Gate Logic Outputs
+                    this.components.forEach(c => {
+                        const oldOut = c.outputs[0] || 0;
+                        let newOut = 0;
+
+                        switch (c.type) {
+                            case 'NOT':
+                                newOut = c.inputs[0] === 1 ? 0 : 1;
+                                break;
+                            case 'AND':
+                                newOut = (c.inputs[0] === 1 && c.inputs[1] === 1) ? 1 : 0;
+                                break;
+                            case 'NAND':
+                                newOut = !(c.inputs[0] === 1 && c.inputs[1] === 1) ? 1 : 0;
+                                break;
+                            case 'OR':
+                                newOut = (c.inputs[0] === 1 || c.inputs[1] === 1) ? 1 : 0;
+                                break;
+                            case 'NOR':
+                                newOut = !(c.inputs[0] === 1 || c.inputs[1] === 1) ? 1 : 0;
+                                break;
+                            case 'XOR':
+                                newOut = (c.inputs[0] ^ c.inputs[1]) ? 1 : 0;
+                                break;
+                            case 'XNOR':
+                                newOut = !(c.inputs[0] ^ c.inputs[1]) ? 1 : 0;
+                                break;
+                            case 'SWITCH':
+                                newOut = c.state;
+                                break;
+                            case 'LED':
+                                newOut = c.inputs[0];
+                                break;
+                        }
+
+                        if (c.outputs[0] !== newOut) {
+                            c.outputs[0] = newOut;
+                            changed = true;
+                        }
+                    });
+                }
+
+                // Update LED visual glowDOMs
+                this.components.filter(c => c.type === 'LED').forEach(led => {
+                    const el = document.getElementById(led.id);
+                    if (el) this.updateComponentHTML(el, led);
+                });
+
+                this.renderWires();
+
+                // Compute Boolean Equations, Truth Table, and Waveforms
+                this.deriveBooleanEquations();
+                this.generateTruthTable();
+                this.drawWaveforms();
+            }
+
+            // --- SYMBOLIC BOOLEAN EQUATION DERIVATION ---
+            deriveBooleanEquations() {
+                const leds = this.components.filter(c => c.type === 'LED');
+                const container = document.getElementById('equation-container');
+
+                if (leds.length === 0) {
+                    container.innerHTML = `<div class="text-slate-500 italic">No LEDs (outputs) connected to the digital circuit.</div>`;
+                    return;
+                }
+
+                let html = '';
+
+                leds.forEach(led => {
+                    const expr = this.traceSymbolicExpression(led.id, 0, new Set());
+                    const simplified = this.simplifyExpressionString(expr);
+                    html += `
+                        <div class="p-2 bg-slate-900 border border-slate-800 rounded-lg flex items-center justify-between">
+                            <span class="font-bold text-emerald-400">${led.label}</span>
+                            <span class="text-slate-400 font-mono">=</span>
+                            <span class="text-cyan-300 font-bold font-mono tracking-wide">${simplified}</span>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+            }
+
+            traceSymbolicExpression(compId, pinIdx, visited) {
+                if (visited.has(compId)) return 'LOOP';
+                visited.add(compId);
+
+                const comp = this.components.find(c => c.id === compId);
+                if (!comp) return '0';
+
+                if (comp.type === 'SWITCH') return comp.label;
+                if (comp.type === 'LED') {
+                    const wire = this.wires.find(w => w.toCompId === compId && w.toPinIdx === 0);
+                    if (!wire) return '0';
+                    return this.traceSymbolicExpression(wire.fromCompId, wire.fromPinIdx, new Set(visited));
+                }
+
+                // Helper to get wire expression for input pin i
+                const getInExpr = (i) => {
+                    const wire = this.wires.find(w => w.toCompId === compId && w.toPinIdx === i);
+                    if (!wire) return '0';
+                    return this.traceSymbolicExpression(wire.fromCompId, wire.fromPinIdx, new Set(visited));
+                };
+
+                switch (comp.type) {
+                    case 'NOT':
+                        return `NOT(${getInExpr(0)})`;
+                    case 'AND':
+                        return `(${getInExpr(0)} AND ${getInExpr(1)})`;
+                    case 'NAND':
+                        return `NOT(${getInExpr(0)} AND ${getInExpr(1)})`;
+                    case 'OR':
+                        return `(${getInExpr(0)} OR ${getInExpr(1)})`;
+                    case 'NOR':
+                        return `NOT(${getInExpr(0)} OR ${getInExpr(1)})`;
+                    case 'XOR':
+                        return `(${getInExpr(0)} XOR ${getInExpr(1)})`;
+                    case 'XNOR':
+                        return `NOT(${getInExpr(0)} XOR ${getInExpr(1)})`;
+                    default:
+                        return '0';
+                }
+            }
+
+            simplifyExpressionString(expr) {
+                if (!expr) return '0';
+                let str = expr;
+                
+                // Simplify double negations NOT(NOT(X)) -> X
+                for (let i = 0; i < 3; i++) {
+                    str = str.replace(/NOT\(NOT\(([^()]+)\)\)/g, '$1');
+                }
+                
+                // Convert gate logic operators to formal boolean algebraic notation
+                str = str.replace(/NOT\(([^()]+)\)/g, "($1)'");
+                str = str.replace(/ AND /g, ' · ');
+                str = str.replace(/ OR /g, ' + ');
+                str = str.replace(/ XOR /g, ' ⊕ ');
+                
+                // Strip redundant outer matching parentheses
+                if (str.startsWith('(') && str.endsWith(')') && this.isMatchingOuterParen(str)) {
+                    str = str.substring(1, str.length - 1);
+                }
+                return str;
+            }
+
+            isMatchingOuterParen(str) {
+                let depth = 0;
+                for (let i = 0; i < str.length - 1; i++) {
+                    if (str[i] === '(') depth++;
+                    else if (str[i] === ')') depth--;
+                    if (depth === 0) return false;
+                }
+                return depth === 1 && str.endsWith(')');
+            }
+
+            // --- TRUTH TABLE GENERATOR (2^N Permutations) ---
+            generateTruthTable() {
+                const switches = this.components.filter(c => c.type === 'SWITCH');
+                const leds = this.components.filter(c => c.type === 'LED');
+
+                const headerRow = document.getElementById('tt-header');
+                const tbody = document.getElementById('tt-body');
+                const countBadge = document.getElementById('tt-count-badge');
+
+                if (switches.length === 0 || leds.length === 0) {
+                    headerRow.innerHTML = `<th class="p-2 border-r border-slate-800">Inputs / Outputs</th>`;
+                    tbody.innerHTML = `<tr><td class="p-2 text-slate-500 italic">Requires at least 1 Switch (input) and 1 LED (output).</td></tr>`;
+                    countBadge.innerText = '0';
+                    return;
+                }
+
+                const numInputs = switches.length;
+                const numRows = Math.pow(2, numInputs);
+                countBadge.innerText = `${numRows} rows`;
+
+                // Build Table Header
+                let headHTML = `<th class="p-2 border-r border-slate-800 text-slate-500 w-12 text-center">#</th>`;
+                switches.forEach(sw => {
+                    headHTML += `<th class="p-2 border-r border-slate-800 text-emerald-400 font-bold">${sw.label}</th>`;
+                });
+                leds.forEach(led => {
+                    headHTML += `<th class="p-2 border-r border-slate-800 text-rose-400 font-bold">${led.label}</th>`;
+                });
+                headerRow.innerHTML = headHTML;
+
+                // Save initial switch states
+                const initialStates = switches.map(s => s.state);
+
+                let bodyHTML = '';
+                this.ttData = []; // Store for Waveforms panel
+
+                for (let r = 0; r < numRows; r++) {
+                    // Set switch input states based on binary representation of r
+                    const rowInputs = [];
+                    for (let i = 0; i < numInputs; i++) {
+                        // MSB to LSB
+                        const bit = (r >> (numInputs - 1 - i)) & 1;
+                        switches[i].state = bit;
+                        switches[i].outputs[0] = bit;
+                        rowInputs.push(bit);
+                    }
+
+                    // Evaluate logic for current combination
+                    this.runQuietSim();
+
+                    const rowOutputs = leds.map(l => l.inputs[0] || 0);
+
+                    this.ttData.push({
+                        step: r,
+                        inputs: rowInputs,
+                        outputs: rowOutputs
+                    });
+
+                    // Build HTML Row
+                    bodyHTML += `<tr class="hover:bg-slate-800/50 transition-colors">`;
+                    bodyHTML += `<td class="p-2 border-r border-slate-800 text-slate-500 text-center font-mono text-[10px]">${r}</td>`;
+                    rowInputs.forEach(val => {
+                        bodyHTML += `<td class="p-2 border-r border-slate-800 font-mono ${val ? 'text-emerald-400 font-bold' : 'text-slate-500'}">${val}</td>`;
+                    });
+                    rowOutputs.forEach(val => {
+                        bodyHTML += `<td class="p-2 border-r border-slate-800 font-mono ${val ? 'text-rose-400 font-bold bg-rose-950/20' : 'text-slate-500'}">${val}</td>`;
+                    });
+                    bodyHTML += `</tr>`;
+                }
+
+                tbody.innerHTML = bodyHTML;
+
+                // Restore initial switch states
+                switches.forEach((sw, idx) => {
+                    sw.state = initialStates[idx];
+                    sw.outputs[0] = initialStates[idx];
+                });
+                this.runQuietSim();
+            }
+
+            runQuietSim() {
+                let changed = true;
+                let iter = 0;
+                while (changed && iter < 30) {
+                    changed = false;
+                    iter++;
+                    this.wires.forEach(w => {
+                        const src = this.components.find(c => c.id === w.fromCompId);
+                        const dst = this.components.find(c => c.id === w.toCompId);
+                        if (src && dst) {
+                            const val = src.outputs[w.fromPinIdx] || 0;
+                            w.value = val;
+                            if (dst.inputs[w.toPinIdx] !== val) {
+                                dst.inputs[w.toPinIdx] = val;
+                                changed = true;
+                            }
+                        }
+                    });
+                    this.components.forEach(c => {
+                        let newOut = 0;
+                        switch (c.type) {
+                            case 'NOT': newOut = c.inputs[0] === 1 ? 0 : 1; break;
+                            case 'AND': newOut = (c.inputs[0] === 1 && c.inputs[1] === 1) ? 1 : 0; break;
+                            case 'NAND': newOut = !(c.inputs[0] === 1 && c.inputs[1] === 1) ? 1 : 0; break;
+                            case 'OR': newOut = (c.inputs[0] === 1 || c.inputs[1] === 1) ? 1 : 0; break;
+                            case 'NOR': newOut = !(c.inputs[0] === 1 || c.inputs[1] === 1) ? 1 : 0; break;
+                            case 'XOR': newOut = (c.inputs[0] ^ c.inputs[1]) ? 1 : 0; break;
+                            case 'XNOR': newOut = !(c.inputs[0] ^ c.inputs[1]) ? 1 : 0; break;
+                            case 'SWITCH': newOut = c.state; break;
+                            case 'LED': newOut = c.inputs[0]; break;
+                        }
+                        if (c.outputs[0] !== newOut) {
+                            c.outputs[0] = newOut;
+                            changed = true;
+                        }
+                    });
+                }
+            }
+
+            // --- DIGITAL WAVEFORMS RENDERER ---
+            drawWaveforms() {
+                const canvas = document.getElementById('waveform-canvas');
+                if (!canvas || !this.ttData || this.ttData.length === 0) return;
+
+                const ctx = canvas.getContext('2d');
+                const parent = canvas.parentElement;
+                canvas.width = parent.clientWidth;
+                canvas.height = parent.clientHeight;
+
+                const switches = this.components.filter(c => c.type === 'SWITCH');
+                const leds = this.components.filter(c => c.type === 'LED');
+                const totalSignals = switches.length + leds.length;
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                if (totalSignals === 0) return;
+
+                const paddingLeft = 100;
+                const paddingRight = 20;
+                const paddingTop = 30;
+                const paddingBottom = 20;
+
+                const plotWidth = canvas.width - paddingLeft - paddingRight;
+                const plotHeight = canvas.height - paddingTop - paddingBottom;
+
+                if (plotWidth <= 0 || plotHeight <= 0) return;
+
+                const rowHeight = plotHeight / totalSignals;
+                const steps = this.ttData.length;
+                const stepWidth = plotWidth / steps;
+
+                // Draw background grid vertical lines & step headers
+                ctx.strokeStyle = '#1e293b';
+                ctx.lineWidth = 1;
+                ctx.fillStyle = '#64748b';
+                ctx.font = '12px monospace';
+                ctx.textAlign = 'center';
+
+                for (let s = 0; s <= steps; s++) {
+                    const x = paddingLeft + s * stepWidth;
+                    ctx.beginPath();
+                    ctx.moveTo(x, paddingTop);
+                    ctx.lineTo(x, paddingTop + plotHeight);
+                    ctx.stroke();
+
+                    if (s < steps) {
+                        ctx.fillText(`t${s}`, x + stepWidth / 2, paddingTop - 10);
+                    }
+                }
+
+                let signalIndex = 0;
+
+                // 1. Render Input Signals (Switches)
+                switches.forEach((sw, idx) => {
+                    const yBase = paddingTop + signalIndex * rowHeight + rowHeight * 0.75;
+                    const yHigh = yBase - rowHeight * 0.5;
+
+                    // Grid baseline
+                    ctx.strokeStyle = '#1e293b';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(paddingLeft, yBase);
+                    ctx.lineTo(paddingLeft + plotWidth, yBase);
+                    ctx.stroke();
+
+                    // Signal Label
+                    ctx.fillStyle = '#10b981';
+                    ctx.font = 'bold 11px monospace';
+                    ctx.textAlign = 'left';
+                    ctx.fillText(`${sw.label} (In)`, 10, yBase - rowHeight * 0.2);
+
+                    // Waveform Path
+                    ctx.strokeStyle = '#34d399';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+
+                    let prevVal = this.ttData[0].inputs[idx];
+                    let currY = prevVal ? yHigh : yBase;
+                    ctx.moveTo(paddingLeft, currY);
+
+                    for (let s = 0; s < steps; s++) {
+                        const val = this.ttData[s].inputs[idx];
+                        const x = paddingLeft + s * stepWidth;
+                        const nextX = paddingLeft + (s + 1) * stepWidth;
+                        const targetY = val ? yHigh : yBase;
+
+                        if (val !== prevVal) {
+                            ctx.lineTo(x, targetY);
+                        }
+                        ctx.lineTo(nextX, targetY);
+                        prevVal = val;
+                    }
+                    ctx.stroke();
+
+                    signalIndex++;
+                });
+
+                // 2. Render Output Signals (LEDs)
+                leds.forEach((led, idx) => {
+                    const yBase = paddingTop + signalIndex * rowHeight + rowHeight * 0.75;
+                    const yHigh = yBase - rowHeight * 0.5;
+
+                    // Grid baseline
+                    ctx.strokeStyle = '#1e293b';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(paddingLeft, yBase);
+                    ctx.lineTo(paddingLeft + plotWidth, yBase);
+                    ctx.stroke();
+
+                    // Signal Label
+                    ctx.fillStyle = '#f43f5e';
+                    ctx.font = 'bold 11px monospace';
+                    ctx.textAlign = 'left';
+                    ctx.fillText(`${led.label} (Out)`, 10, yBase - rowHeight * 0.2);
+
+                    // Waveform Path
+                    ctx.strokeStyle = '#fb7185';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+
+                    let prevVal = this.ttData[0].outputs[idx];
+                    let currY = prevVal ? yHigh : yBase;
+                    ctx.moveTo(paddingLeft, currY);
+
+                    for (let s = 0; s < steps; s++) {
+                        const val = this.ttData[s].outputs[idx];
+                        const x = paddingLeft + s * stepWidth;
+                        const nextX = paddingLeft + (s + 1) * stepWidth;
+                        const targetY = val ? yHigh : yBase;
+
+                        if (val !== prevVal) {
+                            ctx.lineTo(x, targetY);
+                        }
+                        ctx.lineTo(nextX, targetY);
+                        prevVal = val;
+                    }
+                    ctx.stroke();
+
+                    signalIndex++;
+                });
+            }
+
+            // --- VHDL GENERATOR (IEEE 1076-2008 Standard) ---
+            generateVHDL() {
+                const switches = this.components.filter(c => c.type === 'SWITCH');
+                const leds = this.components.filter(c => c.type === 'LED');
+                const gates = this.components.filter(c => c.type !== 'SWITCH' && c.type !== 'LED' && c.type !== 'LABEL');
+
+                const cleanIdent = (str) => str.replace(/[^a-zA-Z0-9_]/g, '_').toLowerCase();
+
+                // Entity Ports
+                const ports = [
+                    ...switches.map(s => `        ${cleanIdent(s.label)} : in std_logic`),
+                    ...leds.map(l => `        ${cleanIdent(l.label)} : out std_logic`)
+                ];
+                const portsDecl = ports.length > 0 ? ports.join(';\n') : '';
+
+                // Internal Signals
+                const signalDecls = gates.length > 0
+                    ? gates.map(g => `    signal net_${cleanIdent(g.id)} : std_logic;`).join('\n')
+                    : '    -- No internal gates';
+
+                // Concurrent Logic Statements
+                let gateAssignments = '';
+                gates.forEach(g => {
+                    const targetSig = `net_${cleanIdent(g.id)}`;
+                    const getSigName = (pinIdx) => {
+                        const wire = this.wires.find(w => w.toCompId === g.id && w.toPinIdx === pinIdx);
+                        if (!wire) return "'0'";
+                        const src = this.components.find(c => c.id === wire.fromCompId);
+                        if (!src) return "'0'";
+                        if (src.type === 'SWITCH') return cleanIdent(src.label);
+                        return `net_${cleanIdent(src.id)}`;
+                    };
+
+                    const in1 = getSigName(0);
+                    const in2 = getSigName(1);
+
+                    switch (g.type) {
+                        case 'NOT': gateAssignments += `    ${targetSig} <= not ${in1};\n`; break;
+                        case 'AND': gateAssignments += `    ${targetSig} <= ${in1} and ${in2};\n`; break;
+                        case 'NAND': gateAssignments += `    ${targetSig} <= not (${in1} and ${in2});\n`; break;
+                        case 'OR': gateAssignments += `    ${targetSig} <= ${in1} or ${in2};\n`; break;
+                        case 'NOR': gateAssignments += `    ${targetSig} <= not (${in1} or ${in2});\n`; break;
+                        case 'XOR': gateAssignments += `    ${targetSig} <= ${in1} xor ${in2};\n`; break;
+                        case 'XNOR': gateAssignments += `    ${targetSig} <= not (${in1} xor ${in2});\n`; break;
+                    }
+                });
+
+                // LED Outputs
+                let ledAssignments = '';
+                leds.forEach(led => {
+                    const wire = this.wires.find(w => w.toCompId === led.id && w.toPinIdx === 0);
+                    let srcSig = "'0'";
+                    if (wire) {
+                        const src = this.components.find(c => c.id === wire.fromCompId);
+                        if (src) {
+                            srcSig = src.type === 'SWITCH' ? cleanIdent(src.label) : `net_${cleanIdent(src.id)}`;
+                        }
+                    }
+                    ledAssignments += `    ${cleanIdent(led.label)} <= ${srcSig};\n`;
+                });
+
+                // Complete design.vhd
+                this.vhdlDesignCode = `-- IEEE 1076-2008 VHDL Design File
+-- Generated automatically by Circuit Studio
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity digital_circuit is
+    Port (
+${portsDecl}
+    );
+end digital_circuit;
+
+architecture Behavioral of digital_circuit is
+${signalDecls}
+begin
+
+    -- Gate Assignments
+${gateAssignments}
+    -- Output Assignments
+${ledAssignments}
+end Behavioral;
+`;
+
+                // Build testbench.vhd
+                let stimProc = '';
+                if (this.ttData && this.ttData.length > 0) {
+                    this.ttData.forEach(row => {
+                        let rowAssign = '            ';
+                        switches.forEach((sw, i) => {
+                            rowAssign += `${cleanIdent(sw.label)} <= '${row.inputs[i]}'; `;
+                        });
+                        rowAssign += `wait for 10 ns;\n`;
+                        stimProc += rowAssign;
+                    });
+                } else {
+                    stimProc = `            wait for 100 ns;\n`;
+                }
+
+                const uutPortMap = [
+                    ...switches.map(s => `        ${cleanIdent(s.label)} => ${cleanIdent(s.label)}`),
+                    ...leds.map(l => `        ${cleanIdent(l.label)} => ${cleanIdent(l.label)}`)
+                ].join(',\n');
+
+                this.vhdlTbCode = `-- IEEE 1076-2008 VHDL Testbench File
+-- Generated automatically by Circuit Studio
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity tb_digital_circuit is
+end tb_digital_circuit;
+
+architecture Behavior of tb_digital_circuit is
+
+    -- Component Declaration
+    component digital_circuit
+        Port (
+${portsDecl}
+        );
+    end component;
+
+    -- Signals Declarations
+${switches.map(s => `    signal ${cleanIdent(s.label)} : std_logic := '0';`).join('\n')}
+${leds.map(l => `    signal ${cleanIdent(l.label)} : std_logic;`).join('\n')}
+
+begin
+
+    -- Instantiate Unit Under Test (UUT)
+    uut: digital_circuit Port Map (
+${uutPortMap}
+    );
+
+    -- Stimulus Process
+    stim_proc: process
+    begin
+        -- Hold Reset State
+        wait for 20 ns;
+${stimProc}
+        wait;
+    end process;
+
+end Behavior;
+`;
+            }
+
+            // --- VERILOG GENERATOR (IEEE 1800-2023 Standard) ---
+            generateVerilog() {
+                const switches = this.components.filter(c => c.type === 'SWITCH');
+                const leds = this.components.filter(c => c.type === 'LED');
+                const gates = this.components.filter(c => c.type !== 'SWITCH' && c.type !== 'LED' && c.type !== 'LABEL');
+
+                const cleanIdent = (str) => str.replace(/[^a-zA-Z0-9_]/g, '_').toLowerCase();
+
+                // Build Module Port Declarations
+                const ports = [
+                    ...switches.map(s => `    input  logic ${cleanIdent(s.label)}`),
+                    ...leds.map(l => `    output logic ${cleanIdent(l.label)}`)
+                ];
+                const portsDecl = ports.length > 0 ? ports.join(',\n') : '';
+
+                // Internal Nets
+                const signalDecls = gates.length > 0
+                    ? gates.map(g => `    logic net_${cleanIdent(g.id)};`).join('\n')
+                    : '    // No internal gates';
+
+                // Combinational Gate Assignments
+                let gateAssignments = '';
+                gates.forEach(g => {
+                    const targetSig = `net_${cleanIdent(g.id)}`;
+                    const getNetName = (pinIdx) => {
+                        const wire = this.wires.find(w => w.toCompId === g.id && w.toPinIdx === pinIdx);
+                        if (!wire) return "1'b0";
+                        const src = this.components.find(c => c.id === wire.fromCompId);
+                        if (!src) return "1'b0";
+                        if (src.type === 'SWITCH') return cleanIdent(src.label);
+                        return `net_${cleanIdent(src.id)}`;
+                    };
+
+                    const in1 = getNetName(0);
+                    const in2 = getNetName(1);
+
+                    switch (g.type) {
+                        case 'NOT': gateAssignments += `    assign ${targetSig} = ~${in1};\n`; break;
+                        case 'AND': gateAssignments += `    assign ${targetSig} = ${in1} & ${in2};\n`; break;
+                        case 'NAND': gateAssignments += `    assign ${targetSig} = ~(${in1} & ${in2});\n`; break;
+                        case 'OR': gateAssignments += `    assign ${targetSig} = ${in1} | ${in2};\n`; break;
+                        case 'NOR': gateAssignments += `    assign ${targetSig} = ~(${in1} | ${in2});\n`; break;
+                        case 'XOR': gateAssignments += `    assign ${targetSig} = ${in1} ^ ${in2};\n`; break;
+                        case 'XNOR': gateAssignments += `    assign ${targetSig} = ~(${in1} ^ ${in2});\n`; break;
+                    }
+                });
+
+                // LED Outputs assignments
+                let ledAssignments = '';
+                leds.forEach(led => {
+                    const wire = this.wires.find(w => w.toCompId === led.id && w.toPinIdx === 0);
+                    let srcNet = "1'b0";
+                    if (wire) {
+                        const src = this.components.find(c => c.id === wire.fromCompId);
+                        if (src) {
+                            srcNet = src.type === 'SWITCH' ? cleanIdent(src.label) : `net_${cleanIdent(src.id)}`;
+                        }
+                    }
+                    ledAssignments += `    assign ${cleanIdent(led.label)} = ${srcNet};\n`;
+                });
+
+                // Complete design.v String
+                this.verilogDesignCode = `// IEEE 1800-2023 SystemVerilog/Verilog Design File
+// Generated automatically by Circuit Studio
+\`timescale 1ns / 1ps
+
+module digital_circuit (
+${portsDecl}
+);
+
+    // Internal Nets
+${signalDecls}
+
+    // Combinational Logic Assignments
+${gateAssignments}
+    // Output Assignments
+${ledAssignments}
+endmodule
+`;
+
+                // Build testbench.v String
+                let stimProc = '';
+                if (this.ttData && this.ttData.length > 0) {
+                    this.ttData.forEach(row => {
+                        let rowAssign = '        ';
+                        switches.forEach((sw, i) => {
+                            rowAssign += `${cleanIdent(sw.label)} = 1'b${row.inputs[i]}; `;
+                        });
+                        rowAssign += `#10;\n`;
+                        stimProc += rowAssign;
+                    });
+                } else {
+                    stimProc = `        #100;\n`;
+                }
+
+                const uutPortMap = [
+                    ...switches.map(s => `        .${cleanIdent(s.label)}(${cleanIdent(s.label)})`),
+                    ...leds.map(l => `        .${cleanIdent(l.label)}(${cleanIdent(l.label)})`)
+                ].join(',\n');
+
+                this.verilogTbCode = `// IEEE 1800-2023 SystemVerilog/Verilog Testbench File
+// Generated automatically by Circuit Studio
+\`timescale 1ns / 1ps
+
+module tb_digital_circuit;
+
+    // Signal Declarations
+${switches.map(s => `    logic ${cleanIdent(s.label)} = 1'b0;`).join('\n')}
+${leds.map(l => `    logic ${cleanIdent(l.label)};`).join('\n')}
+
+    // Instantiate Unit Under Test (UUT)
+    digital_circuit uut (
+${uutPortMap}
+    );
+
+    // Stimulus Process
+    initial begin
+        // Hold Reset State
+        #20;
+${stimProc}
+        $finish;
+    end
+
+endmodule
+`;
+            }
+
+            openVerilogModal() {
+                this.generateVerilog();
+                this.switchVerilogTab('design');
+                document.getElementById('verilog-modal').classList.remove('hidden');
+            }
+
+            closeVerilogModal() {
+                document.getElementById('verilog-modal').classList.add('hidden');
+            }
+
+            switchVerilogTab(tab) {
+                this.activeVerilogTab = tab;
+                const btnDesign = document.getElementById('verilog-tab-design');
+                const btnTb = document.getElementById('verilog-tab-tb');
+                const codeBlock = document.getElementById('verilog-code-block');
+
+                if (tab === 'design') {
+                    btnDesign.className = 'px-3 py-1.5 rounded-t-lg bg-slate-900 text-cyan-400 border-t border-x border-slate-800 font-semibold';
+                    btnTb.className = 'px-3 py-1.5 rounded-t-lg bg-slate-950 text-slate-400 hover:text-slate-200 font-semibold';
+                    codeBlock.innerText = this.verilogDesignCode;
+                } else {
+                    btnTb.className = 'px-3 py-1.5 rounded-t-lg bg-slate-900 text-cyan-400 border-t border-x border-slate-800 font-semibold';
+                    btnDesign.className = 'px-3 py-1.5 rounded-t-lg bg-slate-950 text-slate-400 hover:text-slate-200 font-semibold';
+                    codeBlock.innerText = this.verilogTbCode;
+                }
+            }
+
+            copyVerilogCode() {
+                const code = this.activeVerilogTab === 'design' ? this.verilogDesignCode : this.verilogTbCode;
+                const textarea = document.createElement('textarea');
+                textarea.value = code;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert("Verilog code copied to clipboard!");
+            }
+
+            downloadVerilogFile() {
+                const isDesign = this.activeVerilogTab === 'design';
+                const filename = isDesign ? 'design.v' : 'testbench.v';
+                const content = isDesign ? this.verilogDesignCode : this.verilogTbCode;
+                const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = filename;
+                a.click();
+            }
+
+            // --- UI HELPERS & MODALS ---
+            openVHDLModal() {
+                this.generateVHDL();
+                this.switchVHDLTab('design');
+                document.getElementById('vhdl-modal').classList.remove('hidden');
+            }
+
+            closeVHDLModal() {
+                document.getElementById('vhdl-modal').classList.add('hidden');
+            }
+
+            switchVHDLTab(tab) {
+                this.activeVHDLTab = tab;
+                const btnDesign = document.getElementById('vhdl-tab-design');
+                const btnTb = document.getElementById('vhdl-tab-tb');
+                const codeBlock = document.getElementById('vhdl-code-block');
+
+                if (tab === 'design') {
+                    btnDesign.className = 'px-3 py-1.5 rounded-t-lg bg-slate-900 text-indigo-400 border-t border-x border-slate-800 font-semibold';
+                    btnTb.className = 'px-3 py-1.5 rounded-t-lg bg-slate-950 text-slate-400 hover:text-slate-200 font-semibold';
+                    codeBlock.innerText = this.vhdlDesignCode;
+                } else {
+                    btnTb.className = 'px-3 py-1.5 rounded-t-lg bg-slate-900 text-indigo-400 border-t border-x border-slate-800 font-semibold';
+                    btnDesign.className = 'px-3 py-1.5 rounded-t-lg bg-slate-950 text-slate-400 hover:text-slate-200 font-semibold';
+                    codeBlock.innerText = this.vhdlTbCode;
+                }
+            }
+
+            copyVHDLCode() {
+                const code = this.activeVHDLTab === 'design' ? this.vhdlDesignCode : this.vhdlTbCode;
+                const textarea = document.createElement('textarea');
+                textarea.value = code;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert("VHDL code copied to clipboard!");
+            }
+
+            downloadVHDLFile() {
+                const isDesign = this.activeVHDLTab === 'design';
+                const filename = isDesign ? 'design.vhd' : 'testbench.vhd';
+                const content = isDesign ? this.vhdlDesignCode : this.vhdlTbCode;
+                const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = filename;
+                a.click();
+            }
+
+            switchTab(tab) {
+                this.activeTab = tab;
+                ['eq', 'tt', 'wf'].forEach(t => {
+                    const btn = document.getElementById(`tab-btn-${t}`);
+                    const content = document.getElementById(`tab-content-${t}`);
+                    if (t === tab) {
+                        btn.className = 'px-4 py-2 text-xs font-semibold border-b-2 border-indigo-500 text-indigo-400 flex items-center space-x-1.5 transition-all';
+                        content.classList.remove('hidden');
+                    } else {
+                        btn.className = 'px-4 py-2 text-xs font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-1.5 transition-all';
+                        content.classList.add('hidden');
+                    }
+                });
+                if (tab === 'wf') this.drawWaveforms();
+            }
+
+            toggleLiveSim(val) {
+                this.liveSimulation = val;
+                if (val) this.runSimulation();
+            }
+
+            // --- PALETTE DRAG & DROP HANDLERS ---
+            handleDragStart(e, type) {
+                e.dataTransfer.setData('component_type', type);
+            }
+
+            handleDragOver(e) {
+                e.preventDefault();
+            }
+
+            handleDrop(e) {
+                e.preventDefault();
+                const type = e.dataTransfer.getData('component_type');
+                if (type) {
+                    const canvasRect = document.getElementById('canvas-container').getBoundingClientRect();
+                    const x = e.clientX - canvasRect.left - 50;
+                    const y = e.clientY - canvasRect.top - 20;
+                    this.addComponent(type, x, y);
+                }
+            }
+
+            addComponentFromPalette(type) {
+                this.addComponent(type, 150 + Math.random() * 80, 100 + Math.random() * 80);
+            }
+
+            handleCanvasClick(e) {
+                if (e.target.id === 'canvas-container' || e.target.id === 'svg-wires') {
+                    this.clearSelected();
+                    if (this.activeWireDrag) {
+                        this.activeWireDrag = null;
+                        this.renderWires();
+                    }
+                }
+            }
+
+            // --- JSON IMPORT & EXPORT ---
+            exportJSON() {
+                const data = {
+                    version: "1.0",
+                    timestamp: new Date().toISOString(),
+                    components: this.components,
+                    wires: this.wires
+                };
+                const jsonStr = JSON.stringify(data, null, 2);
+                const blob = new Blob([jsonStr], { type: 'application/json' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'circuit_studio_#.json';
+                a.click();
+            }
+
+            importJSON(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        this.resetCircuit();
+                        if (data.components && data.wires) {
+                            data.components.forEach(c => {
+                                this.addComponent(c.type, c.x, c.y, c.label);
+                                const newComp = this.components[this.components.length - 1];
+                                newComp.id = c.id;
+                                newComp.state = c.state || 0;
+                            });
+                            // Re-render DOM to update IDs properly
+                            document.getElementById('components-layer').innerHTML = '';
+                            this.components.forEach(c => this.renderComponentDOM(c));
+
+                            this.wires = data.wires;
+                            this.renderWires();
+                            this.runSimulation();
+                        }
+                    } catch (err) {
+                        alert("Invalid JSON Circuit file.");
+                    }
+                };
+                reader.readAsText(file);
+            }
+
+            resetCircuit() {
+                this.components = [];
+                this.wires = [];
+                this.selectedComponent = null;
+                this.selectedWire = null;
+                this.activeWireDrag = null;
+                document.getElementById('components-layer').innerHTML = '';
+                document.getElementById('svg-wires').innerHTML = '';
+                this.runSimulation();
+            }
+
+            // --- PRESET CIRCUITS ---
+            loadPreset(name) {
+                if (!name) return;
+                this.resetCircuit();
+
+                if (name === 'half_adder') {
+                    const swA = this.addComponent('SWITCH', 80, 80, 'A');
+                    const swB = this.addComponent('SWITCH', 80, 200, 'B');
+                    const xor1 = this.addComponent('XOR', 260, 80, 'XOR1');
+                    const and1 = this.addComponent('AND', 260, 200, 'AND1');
+                    const ledSum = this.addComponent('LED', 460, 95, 'SUM');
+                    const ledCarry = this.addComponent('LED', 460, 215, 'CARRY');
+
+                    this.addWire(swA.id, 0, xor1.id, 0);
+                    this.addWire(swB.id, 0, xor1.id, 1);
+                    this.addWire(swA.id, 0, and1.id, 0);
+                    this.addWire(swB.id, 0, and1.id, 1);
+                    this.addWire(xor1.id, 0, ledSum.id, 0);
+                    this.addWire(and1.id, 0, ledCarry.id, 0);
+                } else if (name === 'full_adder') {
+                    const swA = this.addComponent('SWITCH', 60, 60, 'A');
+                    const swB = this.addComponent('SWITCH', 60, 160, 'B');
+                    const swCin = this.addComponent('SWITCH', 60, 260, 'Cin');
+
+                    const xor1 = this.addComponent('XOR', 220, 80, 'XOR1');
+                    const xor2 = this.addComponent('XOR', 380, 100, 'XOR2');
+                    const and1 = this.addComponent('AND', 220, 200, 'AND1');
+                    const and2 = this.addComponent('AND', 380, 220, 'AND2');
+                    const or1 = this.addComponent('OR', 520, 210, 'OR1');
+
+                    const ledSum = this.addComponent('LED', 660, 105, 'SUM');
+                    const ledCout = this.addComponent('LED', 660, 215, 'Cout');
+
+                    this.addWire(swA.id, 0, xor1.id, 0);
+                    this.addWire(swB.id, 0, xor1.id, 1);
+                    this.addWire(xor1.id, 0, xor2.id, 0);
+                    this.addWire(swCin.id, 0, xor2.id, 1);
+                    this.addWire(xor2.id, 0, ledSum.id, 0);
+
+                    this.addWire(swA.id, 0, and1.id, 0);
+                    this.addWire(swB.id, 0, and1.id, 1);
+                    this.addWire(xor1.id, 0, and2.id, 0);
+                    this.addWire(swCin.id, 0, and2.id, 1);
+
+                    this.addWire(and1.id, 0, or1.id, 0);
+                    this.addWire(and2.id, 0, or1.id, 1);
+                    this.addWire(or1.id, 0, ledCout.id, 0);
+                } else if (name === 'mux21') {
+                    const swD0 = this.addComponent('SWITCH', 60, 60, 'D0');
+                    const swD1 = this.addComponent('SWITCH', 60, 160, 'D1');
+                    const swS = this.addComponent('SWITCH', 60, 260, 'SEL');
+
+                    const notS = this.addComponent('NOT', 200, 260, 'NOT1');
+                    const and1 = this.addComponent('AND', 340, 70, 'AND1');
+                    const and2 = this.addComponent('AND', 340, 180, 'AND2');
+                    const or1 = this.addComponent('OR', 480, 120, 'OR1');
+                    const ledY = this.addComponent('LED', 620, 135, 'OUT_Y');
+
+                    this.addWire(swS.id, 0, notS.id, 0);
+                    this.addWire(swD0.id, 0, and1.id, 0);
+                    this.addWire(notS.id, 0, and1.id, 1);
+
+                    this.addWire(swD1.id, 0, and2.id, 0);
+                    this.addWire(swS.id, 0, and2.id, 1);
+
+                    this.addWire(and1.id, 0, or1.id, 0);
+                    this.addWire(and2.id, 0, or1.id, 1);
+                    this.addWire(or1.id, 0, ledY.id, 0);
+                } else if (name === 'xor_nand') {
+                    const swA = this.addComponent('SWITCH', 60, 80, 'A');
+                    const swB = this.addComponent('SWITCH', 60, 220, 'B');
+
+                    const nand1 = this.addComponent('NAND', 200, 150, 'NAND1');
+                    const nand2 = this.addComponent('NAND', 360, 80, 'NAND2');
+                    const nand3 = this.addComponent('NAND', 360, 220, 'NAND3');
+                    const nand4 = this.addComponent('NAND', 520, 150, 'NAND4');
+                    const ledOut = this.addComponent('LED', 660, 165, 'OUT_XOR');
+
+                    this.addWire(swA.id, 0, nand1.id, 0);
+                    this.addWire(swB.id, 0, nand1.id, 1);
+
+                    this.addWire(swA.id, 0, nand2.id, 0);
+                    this.addWire(nand1.id, 0, nand2.id, 1);
+
+                    this.addWire(nand1.id, 0, nand3.id, 0);
+                    this.addWire(swB.id, 0, nand3.id, 1);
+
+                    this.addWire(nand2.id, 0, nand4.id, 0);
+                    this.addWire(nand3.id, 0, nand4.id, 1);
+
+                    this.addWire(nand4.id, 0, ledOut.id, 0);
+                }
+
+                document.getElementById('preset-select').value = '';
+                this.runSimulation();
+            }
+
+            addWire(fromCompId, fromPinIdx, toCompId, toPinIdx) {
+                this.wires.push({
+                    id: 'wire_' + Math.random().toString(36).substr(2, 9),
+                    fromCompId,
+                    fromPinIdx,
+                    toCompId,
+                    toPinIdx,
+                    value: 0
+                });
+            }
+        }
+
+        // Initialize Application
+        let app;
+        const initApp = () => {
+            if (!app) {
+                app = new LogicSimulator();
+                // Load Half Adder preset by default for instant interactivity
+                app.loadPreset('half_adder');
+            }
+        };
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
+    </script>
+</body>
+</html>
